@@ -695,7 +695,7 @@ export const Effectiveness = ({
                     <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-[11px] leading-relaxed flex items-start gap-2 animate-fade-in-up">
                       <AlertTriangle size={14} className="shrink-0 mt-0.5 text-blue-600" />
                       <div>
-                        <span className="font-bold">Edit Mode:</span> This effectiveness log has already been submitted. As a QA user, you can update it once.
+                        <span className="font-bold">Edit Mode:</span> This effectiveness log has already been submitted. As a QAD user, you can update it once.
                       </div>
                     </div>
                   )}
@@ -977,9 +977,9 @@ export const Effectiveness = ({
                 </select>
               </div>
 
-              {/* QA APPROVAL DECISION */}
+              {/* QAD APPROVAL DECISION */}
               <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">QA Approval Decision <span className="text-rose-500">*</span></label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">QAD Approval Decision <span className="text-rose-500">*</span></label>
                 <select
                   required
                   disabled={!effChangeNo || (isAlreadyValidated && isUpdateBlocked)}
@@ -988,7 +988,7 @@ export const Effectiveness = ({
                   value={effQaApproval}
                   onChange={(e) => setEffQaApproval(e.target.value)}
                 >
-                  <option value="">Select QA Decision</option>
+                  <option value="">Select QAD Decision</option>
                   <option value="Approved">Approved</option>
                   <option value="Rejected">Rejected</option>
                 </select>
@@ -1205,7 +1205,7 @@ export const Effectiveness = ({
                     <th className="p-[8px] font-bold text-slate-500 uppercase tracking-wider">Remarks</th>
                     <th className="p-[8px] font-bold text-slate-500 uppercase tracking-wider">Attachment</th>
                     <th className="p-[8px] font-bold text-slate-500 uppercase tracking-wider">Effectiveness Status</th>
-                    <th className="p-[8px] font-bold text-slate-500 uppercase tracking-wider">QA Approval</th>
+                    <th className="p-[8px] font-bold text-slate-500 uppercase tracking-wider">QAD Approval</th>
                     <th className="p-[8px] w-10 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -1733,7 +1733,6 @@ export const Effectiveness = ({
                         </div>
 
                         <div className="space-y-[4px]">
-                          <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Approval Required / Clearence Details</span>
                           <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5 text-[12px]">
                             <span>{showCustomerApproval ? (selectedL1Details.customer_approval || '-') : '••••'}</span>
                             <button
@@ -1823,7 +1822,7 @@ export const Effectiveness = ({
                           </div>
 
                           <div className="space-y-[6px]">
-                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QA Setup Verification Attachment</span>
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Setup Verification Attachment</span>
                             <div className="space-y-2">
                               {!selectedL2Details.qaTest || selectedL2Details.qaTest === '-' ? (
                                 <div className="bg-slate-50 border border-slate-200 rounded-[8px] p-3 text-slate-550 text-[12px] font-medium">-</div>
@@ -1972,7 +1971,7 @@ export const Effectiveness = ({
                               </div>
                             </div>
                             <div className="space-y-[4px]">
-                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QA Approval</span>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Approval</span>
                               <div>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentEffLog.qaApproval === 'Approved'
                                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700'

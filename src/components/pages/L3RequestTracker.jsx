@@ -459,7 +459,9 @@ export const L3RequestTracker = ({
   };
 
   const handleExportRequestDetailsPDF = () => {
-    exportRequestDetailsPDF(selectedL1Details, selectedL2Details, selectedLog, activeTab, setToastMsg);
+    const isL3Complete = selectedL1Details?.crStatus?.toLowerCase() === 'completed' || selectedLog?.status?.toLowerCase() === 'completed';
+    // Export full details: L1, L2, L3 always. Conditionally pass effectiveness log.
+    exportRequestDetailsPDF(selectedL1Details, selectedL2Details, selectedLog, 'all', setToastMsg, isL3Complete ? selectedEffDetails : null);
   };
 
   const currentChangeLog = selectedChangeId ? approvalLogs.find(log => log.changeNo === selectedChangeId) : null;
@@ -1351,7 +1353,6 @@ export const L3RequestTracker = ({
                         </div>
 
                         <div className="space-y-[4px]">
-                          <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Approval Required / Clearence Details</span>
                           <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5 text-[12px]">
                             <span>{showCustomerApproval ? (selectedL1Details.customer_approval || '-') : '••••'}</span>
                             <button
@@ -1441,7 +1442,7 @@ export const L3RequestTracker = ({
                           </div>
 
                           <div className="space-y-[6px]">
-                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QA Setup Verification Attachment</span>
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Setup Verification Attachment</span>
                             <div className="space-y-2">
                               {!selectedL2Details.qaTest || selectedL2Details.qaTest === '-' ? (
                                 <div className="bg-slate-50 border border-slate-200 rounded-[8px] p-3 text-slate-550 text-[12px] font-medium">-</div>
@@ -1588,7 +1589,7 @@ export const L3RequestTracker = ({
                               </div>
                             </div>
                             <div className="space-y-[4px]">
-                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QA Approval</span>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Approval</span>
                               <div>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentEffLog.qaApproval === 'Approved'
                                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -1669,11 +1670,11 @@ export const L3RequestTracker = ({
                       ) : (
                         <Clock size={14} />
                       )}
-                      L2 QA Validation {selectedL2Details.status === 'Accepted' ? 'Approved' : (selectedL2Details.status || 'Pending')}
+                      L2 QAD Validation {selectedL2Details.status === 'Accepted' ? 'Approved' : (selectedL2Details.status || 'Pending')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-2 text-[11px] font-bold px-3 py-1.5 rounded-xl border text-amber-700 bg-amber-50 border-amber-200">
-                      <Clock size={14} /> L2 QA Validation Pending
+                      <Clock size={14} /> L2 QAD Validation Pending
                     </span>
                   )
                 ) : activeTab === 'l3' ? (

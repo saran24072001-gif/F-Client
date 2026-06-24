@@ -5,6 +5,32 @@ import { getRequestDisplayStatus } from './statusUtils';
 import { getSyncedDate } from './timeSync';
 import nipponLogoUrl from '../assets/Nippon Logo.png';
 
+// Premium Theme Colors
+const PRIMARY_COLOR = [30, 58, 138]; // Deep Royal Navy #1e3a8a
+const SECONDARY_COLOR = [71, 85, 105]; // Cool Slate #475569
+
+// Status cell styling helper for PDF exports
+const applyCellStatusColors = (data, minColIndex, maxColIndex = minColIndex) => {
+  if (data.row.section !== 'body') return;
+  if (data.column.index >= minColIndex && data.column.index <= maxColIndex) {
+    const val = data.cell.text[0];
+    const cleanVal = val ? val.trim().toLowerCase() : '';
+    if (cleanVal.includes('approve') || cleanVal.includes('accept') || cleanVal.includes('completed') || cleanVal.includes('complete') || cleanVal.includes('closed') || cleanVal.includes('active') || (cleanVal.includes('ok') && !cleanVal.includes('not ok'))) {
+      data.cell.styles.textColor = [16, 124, 65]; // Premium Green (dark emerald)
+      data.cell.styles.fontStyle = 'bold';
+    } else if (cleanVal.includes('reject') || cleanVal.includes('not ok')) {
+      data.cell.styles.textColor = [220, 38, 38]; // Premium Red (rose-600)
+      data.cell.styles.fontStyle = 'bold';
+    } else if (cleanVal.includes('pending') || cleanVal.includes('evaluat')) {
+      data.cell.styles.textColor = [217, 119, 6]; // Premium Amber (amber-600)
+      data.cell.styles.fontStyle = 'bold';
+    } else if (cleanVal.includes('need') || cleanVal.includes('qa')) {
+      data.cell.styles.textColor = [79, 70, 229]; // Indigo/Blue
+      data.cell.styles.fontStyle = 'bold';
+    }
+  }
+};
+
 /**
  * Adds the Nippon logo to the top-right corner of the current page.
  * Call once per doc right after creation; didDrawPage will re-apply on new pages.
@@ -82,7 +108,7 @@ export const exportRequestsListPDF = (filteredData, filtersInfo = {}, setToastMs
     // Title & Branding (Blue theme)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(0, 102, 204); // #0066cc
+    doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]); // Premium primary color
     doc.text('4M Change Management System - All Change Requests', 40, 45);
 
     // Metadata details
@@ -113,7 +139,7 @@ export const exportRequestsListPDF = (filteredData, filtersInfo = {}, setToastMs
       body: tableData,
       theme: 'striped',
       headStyles: {
-        fillColor: [0, 102, 204],
+        fillColor: PRIMARY_COLOR,
         textColor: [255, 255, 255],
         fontSize: 7.5,
         fontStyle: 'bold',
@@ -149,25 +175,7 @@ export const exportRequestsListPDF = (filteredData, filtersInfo = {}, setToastMs
         doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL CHANGE REQUESTS', 40, doc.internal.pageSize.height - 20);
       },
       didParseCell: (data) => {
-        if (data.row.section !== 'body') return;
-        const val = data.cell.text[0];
-        const cleanVal = val ? val.trim().toLowerCase() : '';
-        // Color-code HOD, L2, L3, Overall status columns (7-10)
-        if (data.column.index >= 7 && data.column.index <= 10) {
-          if (cleanVal.includes('approve') || cleanVal.includes('accept') || cleanVal.includes('completed') || cleanVal.includes('complete')) {
-            data.cell.styles.textColor = [16, 124, 65]; // Green
-            data.cell.styles.fontStyle = 'bold';
-          } else if (cleanVal.includes('reject')) {
-            data.cell.styles.textColor = [220, 38, 38]; // Red
-            data.cell.styles.fontStyle = 'bold';
-          } else if (cleanVal.includes('pending')) {
-            data.cell.styles.textColor = [217, 119, 6]; // Amber
-            data.cell.styles.fontStyle = 'bold';
-          } else if (cleanVal.includes('close')) {
-            data.cell.styles.textColor = [37, 99, 235]; // Blue
-            data.cell.styles.fontStyle = 'bold';
-          }
-        }
+        applyCellStatusColors(data, 7, 10);
       }
     });
 
@@ -344,8 +352,9 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
       margin: { left: 40, right: 40 }
     });
 
-    // Section 2: Details & Justification (aligned with CHANGE DESCRIPTION, TIMELINE, Risk Analysis in modal)
-    if (targetTab === 'l1' || targetTab === 'all') {
+    // Section 2: Details & Justification — always included in every export variant
+    // (L1 details are the foundation for all L2/L3/Effectiveness exports)
+    if (selectedL1Details) {
       const detailsData = [
         [
           { content: 'Context of Change', fontStyle: 'bold' },
@@ -507,7 +516,7 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
             { content: 'PED Validation Attachment', fontStyle: 'bold' }, selectedL2Details.weldTest || '-'
           ],
           [
-            { content: 'QA Setup Verification Attachment', fontStyle: 'bold' }, selectedL2Details.qaTest || '-',
+            { content: 'QAD Setup Verification Attachment', fontStyle: 'bold' }, selectedL2Details.qaTest || '-',
             { content: 'Validator Remarks / Comments', fontStyle: 'bold' }, selectedL2Details.remarks || '-'
           ]
         );
@@ -617,7 +626,7 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
         ],
         [
           { content: 'Effectiveness Status', fontStyle: 'bold' }, effDetails.status || '-',
-          { content: 'QA Approval', fontStyle: 'bold' }, effDetails.qaApproval || '-'
+          { content: 'QAD Approval', fontStyle: 'bold' }, effDetails.qaApproval || '-'
         ],
         [
           { content: 'Attachments', fontStyle: 'bold' }, { content: effDetails.attachment || '-', colSpan: 3 }
@@ -651,7 +660,7 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
         margin: { left: 40, right: 40 },
         didParseCell: (data) => {
           if (data.row.section === 'body' && data.row.index === 2) {
-            // Color-code Effectiveness Status & QA Approval
+            // Color-code Effectiveness Status & QAD Approval
             if (data.column.index === 1 || data.column.index === 3) {
               const val = data.cell.text[0];
               const cleanVal = val ? val.trim().toLowerCase() : '';
@@ -732,15 +741,15 @@ export const exportL2ValidationLogsPDF = (filteredLogs, filtersInfo = {}, setToa
       item.status === 'Accepted'
         ? 'Approved'
         : item.status === 'Pending'
-          ? (item.weldTest && item.weldTest !== '-' ? 'QA Approval Needed' : 'Pending Requester Validation')
+          ? (item.weldTest && item.weldTest !== '-' ? 'QAD Approval Needed' : 'Pending Requester Validation')
           : item.status,
       item.remarks || '-'
     ]);
 
-    // Branding & Title
+    // Branding & Title (Orange theme)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(0, 102, 204);
+    doc.setTextColor(217, 119, 6); // Orange
     doc.text('4M Change Management System - L2 Validation Logs', 40, 45);
 
     doc.setFont('helvetica', 'normal');
@@ -761,7 +770,7 @@ export const exportL2ValidationLogsPDF = (filteredLogs, filtersInfo = {}, setToa
       body: tableData,
       theme: 'striped',
       headStyles: {
-        fillColor: [0, 102, 204],
+        fillColor: [217, 119, 6], // Orange
         textColor: [255, 255, 255],
         fontSize: 7.5,
         fontStyle: 'bold',
@@ -878,10 +887,10 @@ export const exportL3ApprovalsPDF = (filteredLogs, filtersInfo = {}, setToastMsg
       item.unitHead || 'Pending'
     ]);
 
-    // Branding & Title
+    // Branding & Title (Purple theme)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(0, 102, 204);
+    doc.setTextColor(124, 58, 237); // #7c3aed (Purple)
     doc.text('4M Change Management System - L3 Approval Tracker Matrix', 40, 45);
 
     doc.setFont('helvetica', 'normal');
@@ -902,7 +911,7 @@ export const exportL3ApprovalsPDF = (filteredLogs, filtersInfo = {}, setToastMsg
       body: tableData,
       theme: 'striped',
       headStyles: {
-        fillColor: [0, 102, 204],
+        fillColor: [124, 58, 237], // Purple
         textColor: [255, 255, 255],
         fontSize: 6.5,
         fontStyle: 'bold',
@@ -1308,7 +1317,7 @@ export const exportDashboardRequestsPDF = (filteredChanges, filtersInfo = {}, se
     // Title & Branding (Blue theme)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.setTextColor(0, 102, 204); // #0066cc
+    doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]); // Premium primary color
     doc.text('4M Change Management System - Dashboard Overview', 40, 45);
 
     // Metadata details
@@ -1339,7 +1348,7 @@ export const exportDashboardRequestsPDF = (filteredChanges, filtersInfo = {}, se
       body: tableData,
       theme: 'striped',
       headStyles: {
-        fillColor: [0, 102, 204],
+        fillColor: PRIMARY_COLOR,
         textColor: [255, 255, 255],
         fontSize: 7.5,
         fontStyle: 'bold',
@@ -1374,25 +1383,7 @@ export const exportDashboardRequestsPDF = (filteredChanges, filtersInfo = {}, se
         doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL DASHBOARD OVERVIEW', 40, doc.internal.pageSize.height - 20);
       },
       didParseCell: (data) => {
-        if (data.row.section !== 'body') return;
-        const val = data.cell.text[0];
-        const cleanVal = val ? val.trim().toLowerCase() : '';
-        // Color-code HOD, L2, L3, Overall status columns (7–10)
-        if (data.column.index >= 7 && data.column.index <= 10) {
-          if (cleanVal.includes('approve') || cleanVal.includes('accept') || cleanVal.includes('completed') || cleanVal.includes('complete')) {
-            data.cell.styles.textColor = [16, 124, 65]; // Green
-            data.cell.styles.fontStyle = 'bold';
-          } else if (cleanVal.includes('reject')) {
-            data.cell.styles.textColor = [220, 38, 38]; // Red
-            data.cell.styles.fontStyle = 'bold';
-          } else if (cleanVal.includes('pending')) {
-            data.cell.styles.textColor = [217, 119, 6]; // Amber
-            data.cell.styles.fontStyle = 'bold';
-          } else if (cleanVal.includes('close')) {
-            data.cell.styles.textColor = [37, 99, 235]; // Blue
-            data.cell.styles.fontStyle = 'bold';
-          }
-        }
+        applyCellStatusColors(data, 7, 10);
       }
     });
 
@@ -1504,7 +1495,7 @@ export const exportEffectivenessLogsPDF = (filteredLogs, filtersInfo = {}, setTo
         4: { cellWidth: 65, halign: 'center' },    // CHANGE DATE START
         5: { cellWidth: 55, halign: 'center' },    // MONTH WISE
         6: { cellWidth: 110 },                     // EFFECTIVENESS STATUS
-        7: { cellWidth: 72, halign: 'center' },    // QA APPROVAL
+        7: { cellWidth: 72, halign: 'center' },    // QAD APPROVAL
         8: { cellWidth: 118 }                      // REMARKS
       },
       margin: { top: 40, bottom: 40, left: 40, right: 40 },
@@ -1513,7 +1504,7 @@ export const exportEffectivenessLogsPDF = (filteredLogs, filtersInfo = {}, setTo
         doc.setFontSize(8);
         doc.setTextColor(148, 163, 184); // Slate-400
         doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL EFFECTIVENESS OBSERVATIONS', 40, doc.internal.pageSize.height - 20);
+        doc.text('NIPPON QAD - CONFIDENTIAL EFFECTIVENESS OBSERVATIONS', 40, doc.internal.pageSize.height - 20);
       },
       didParseCell: (data) => {
         // Highlight Status
@@ -1527,7 +1518,7 @@ export const exportEffectivenessLogsPDF = (filteredLogs, filtersInfo = {}, setTo
             data.cell.styles.fontStyle = 'bold';
           }
         }
-        // Highlight QA Approval Decision
+        // Highlight QAD Approval Decision
         if (data.column.index === 7 && data.row.section === 'body') {
           const val = data.cell.text[0];
           if (val === 'Approved') {
@@ -1657,7 +1648,7 @@ export const exportDepartmentAnalyticsPDF = (filteredChanges, filtersInfo = {}, 
     // Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.setTextColor(0, 102, 204);
+    doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
     doc.text('4M Change Management - Department Analytics', 40, 45);
 
     doc.setFont('helvetica', 'normal');
@@ -1674,7 +1665,7 @@ export const exportDepartmentAnalyticsPDF = (filteredChanges, filtersInfo = {}, 
       head: summaryHeaders,
       body: summaryRows,
       theme: 'grid',
-      headStyles: { fillColor: [0, 102, 204], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 220 },
@@ -1710,7 +1701,7 @@ export const exportDepartmentAnalyticsPDF = (filteredChanges, filtersInfo = {}, 
       head: detailedHeaders,
       body: detailedRows,
       theme: 'striped',
-      headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: SECONDARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 50 },
@@ -1721,6 +1712,9 @@ export const exportDepartmentAnalyticsPDF = (filteredChanges, filtersInfo = {}, 
         5: { cellWidth: 85 }
       },
       margin: { left: 40, right: 40, bottom: 40 },
+      didParseCell: (data) => {
+        applyCellStatusColors(data, 5);
+      },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
         doc.setFontSize(8);
@@ -1796,7 +1790,7 @@ export const exportProcessAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
     // Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.setTextColor(0, 102, 204);
+    doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
     doc.text('4M Change Management - Process Analytics', 40, 45);
 
     doc.setFont('helvetica', 'normal');
@@ -1813,7 +1807,7 @@ export const exportProcessAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
       head: summaryHeaders,
       body: summaryRows,
       theme: 'grid',
-      headStyles: { fillColor: [0, 102, 204], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 220 },
@@ -1849,7 +1843,7 @@ export const exportProcessAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
       head: detailedHeaders,
       body: detailedRows,
       theme: 'striped',
-      headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: SECONDARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 50 },
@@ -1860,6 +1854,9 @@ export const exportProcessAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
         5: { cellWidth: 85 }
       },
       margin: { left: 40, right: 40, bottom: 40 },
+      didParseCell: (data) => {
+        applyCellStatusColors(data, 5);
+      },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
         doc.setFontSize(8);
@@ -1926,7 +1923,7 @@ export const exportCategoryAnalyticsPDF = (filteredChanges, filtersInfo = {}, se
     // Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.setTextColor(0, 102, 204);
+    doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
     doc.text('4M Change Management - 6M Category Analytics', 40, 45);
 
     doc.setFont('helvetica', 'normal');
@@ -1943,7 +1940,7 @@ export const exportCategoryAnalyticsPDF = (filteredChanges, filtersInfo = {}, se
       head: summaryHeaders,
       body: summaryRows,
       theme: 'grid',
-      headStyles: { fillColor: [0, 102, 204], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 220 },
@@ -1979,7 +1976,7 @@ export const exportCategoryAnalyticsPDF = (filteredChanges, filtersInfo = {}, se
       head: detailedHeaders,
       body: detailedRows,
       theme: 'striped',
-      headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: SECONDARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 40 },
@@ -1990,6 +1987,9 @@ export const exportCategoryAnalyticsPDF = (filteredChanges, filtersInfo = {}, se
         5: { cellWidth: 75 }
       },
       margin: { left: 40, right: 40, bottom: 40 },
+      didParseCell: (data) => {
+        applyCellStatusColors(data, 5);
+      },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
         doc.setFontSize(8);
@@ -2058,7 +2058,7 @@ export const exportMonthlyAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
     // Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.setTextColor(0, 102, 204);
+    doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
     doc.text('4M Change Management - Monthly Analytics', 40, 45);
 
     doc.setFont('helvetica', 'normal');
@@ -2075,7 +2075,7 @@ export const exportMonthlyAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
       head: summaryHeaders,
       body: summaryRows,
       theme: 'grid',
-      headStyles: { fillColor: [0, 102, 204], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 220 },
@@ -2111,7 +2111,7 @@ export const exportMonthlyAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
       head: detailedHeaders,
       body: detailedRows,
       theme: 'striped',
-      headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: SECONDARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 50 },
@@ -2122,6 +2122,9 @@ export const exportMonthlyAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
         5: { cellWidth: 85 }
       },
       margin: { left: 40, right: 40, bottom: 40 },
+      didParseCell: (data) => {
+        applyCellStatusColors(data, 5);
+      },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
         doc.setFontSize(8);
@@ -2206,7 +2209,7 @@ export const exportApprovalStatusAnalyticsPDF = (filteredChanges, filtersInfo = 
     // Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.setTextColor(0, 102, 204);
+    doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
     doc.text('4M Change Management - Approval Status Analytics', 40, 45);
 
     doc.setFont('helvetica', 'normal');
@@ -2223,7 +2226,7 @@ export const exportApprovalStatusAnalyticsPDF = (filteredChanges, filtersInfo = 
       head: summaryHeaders,
       body: summaryRows,
       theme: 'grid',
-      headStyles: { fillColor: [0, 102, 204], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 115 },
@@ -2262,7 +2265,7 @@ export const exportApprovalStatusAnalyticsPDF = (filteredChanges, filtersInfo = 
       head: detailedHeaders,
       body: detailedRows,
       theme: 'striped',
-      headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontStyle: 'bold' },
+      headStyles: { fillColor: SECONDARY_COLOR, textColor: [255, 255, 255], fontStyle: 'bold' },
       bodyStyles: { textColor: [51, 65, 85] },
       columnStyles: {
         0: { cellWidth: 50 },
@@ -2273,6 +2276,9 @@ export const exportApprovalStatusAnalyticsPDF = (filteredChanges, filtersInfo = 
         5: { cellWidth: 85 }
       },
       margin: { left: 40, right: 40, bottom: 40 },
+      didParseCell: (data) => {
+        applyCellStatusColors(data, 5);
+      },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
         doc.setFontSize(8);

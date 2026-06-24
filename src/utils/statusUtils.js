@@ -6,7 +6,7 @@
  * - 'Rejected': If rejected at any stage (HOD, L2 validation, or L3 approvals)
  * - 'Closed': If successfully completed/closed at L3
  * - 'Approved': If L2 validation accepted, now in L3 approvals phase
- * - 'Pending L2': If HOD approved, awaiting requester L2 submission/QA verification
+ * - 'Pending L2': If HOD approved, awaiting requester L2 submission/QAD verification
  * - 'Pending L1 HOD': Newly created request awaiting HOD approvals
  */
 export const getRequestDisplayStatus = (c) => {
@@ -15,7 +15,7 @@ export const getRequestDisplayStatus = (c) => {
     return 'Rejected';
   }
 
-  // 2. Check effectiveness QA Approval Decision
+  // 2. Check effectiveness QAD Approval Decision
   if (c.qaApproval === 'Approved') {
     return 'Closed';
   }

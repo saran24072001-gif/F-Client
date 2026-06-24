@@ -636,7 +636,7 @@ export const L1Request = ({
     }
 
     if (!processName || !processName.trim()) {
-      newErrors.processName = 'Please select a Process Name.';
+      newErrors.processName = isAdmin ? 'Please select a Process Name.' : 'Please enter a Process Name.';
     }
 
     if (!processLine || !processLine.trim()) {
@@ -644,7 +644,7 @@ export const L1Request = ({
     }
 
     if (!machineNo || !machineNo.trim()) {
-      newErrors.machineNo = 'Please select a Machine No.';
+      newErrors.machineNo = isAdmin ? 'Please select a Machine No.' : 'Please enter a Machine No.';
     }
 
     if (!context || !context.trim()) {
@@ -1159,26 +1159,26 @@ export const L1Request = ({
             {/* PROCESS NAME */}
             <div className="space-y-[4px]">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Process Name <span className="text-rose-500">*</span></label>
-              <div className="flex gap-[8px]">
-                <select
-                  id="processName"
-                  value={processName}
-                  onChange={(e) => {
-                    setProcessName(e.target.value);
-                    if (errors.processName) setErrors(prev => ({ ...prev, processName: '' }));
-                  }}
-                  className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                    errors.processName 
-                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
-                      : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                  }`}
-                >
-                  <option value="">— Select or Add Process —</option>
-                  {dbProcesses.map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-                {isAdmin && (
+              {isAdmin ? (
+                <div className="flex gap-[8px]">
+                  <select
+                    id="processName"
+                    value={processName}
+                    onChange={(e) => {
+                      setProcessName(e.target.value);
+                      if (errors.processName) setErrors(prev => ({ ...prev, processName: '' }));
+                    }}
+                    className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
+                      errors.processName 
+                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                        : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
+                    }`}
+                  >
+                    <option value="">— Select or Add Process —</option>
+                    {dbProcesses.map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     onClick={() => {
@@ -1190,8 +1190,24 @@ export const L1Request = ({
                   >
                     <Plus size={16} />
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  id="processName"
+                  placeholder="Enter Process Name"
+                  value={processName}
+                  onChange={(e) => {
+                    setProcessName(e.target.value);
+                    if (errors.processName) setErrors(prev => ({ ...prev, processName: '' }));
+                  }}
+                  className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
+                    errors.processName 
+                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                      : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
+                  }`}
+                />
+              )}
               {errors.processName && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.processName}</span>}
             </div>
 
@@ -1229,26 +1245,26 @@ export const L1Request = ({
             {/* MACHINE NO */}
             <div className="space-y-[4px] sm:col-span-2 lg:col-span-4">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Machine No <span className="text-rose-500">*</span></label>
-              <div className="flex gap-[8px] sm:max-w-[49%] lg:max-w-[24.4%]">
-                <select
-                  id="machineNo"
-                  value={machineNo}
-                  onChange={(e) => {
-                    setMachineNo(e.target.value);
-                    if (errors.machineNo) setErrors(prev => ({ ...prev, machineNo: '' }));
-                  }}
-                  className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                    errors.machineNo 
-                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
-                      : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                  }`}
-                >
-                  <option value="">— Select or Add Machine —</option>
-                  {dbMachines.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-                {isAdmin && (
+              {isAdmin ? (
+                <div className="flex gap-[8px] sm:max-w-[49%] lg:max-w-[24.4%]">
+                  <select
+                    id="machineNo"
+                    value={machineNo}
+                    onChange={(e) => {
+                      setMachineNo(e.target.value);
+                      if (errors.machineNo) setErrors(prev => ({ ...prev, machineNo: '' }));
+                    }}
+                    className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
+                      errors.machineNo 
+                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                        : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
+                    }`}
+                  >
+                    <option value="">— Select or Add Machine —</option>
+                    {dbMachines.map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     onClick={() => {
@@ -1260,8 +1276,24 @@ export const L1Request = ({
                   >
                     <Plus size={16} />
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  id="machineNo"
+                  placeholder="Enter Machine No"
+                  value={machineNo}
+                  onChange={(e) => {
+                    setMachineNo(e.target.value);
+                    if (errors.machineNo) setErrors(prev => ({ ...prev, machineNo: '' }));
+                  }}
+                  className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 sm:max-w-[49%] lg:max-w-[24.4%] ${
+                    errors.machineNo 
+                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                      : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
+                  }`}
+                />
+              )}
               {errors.machineNo && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.machineNo}</span>}
             </div>
           </div>

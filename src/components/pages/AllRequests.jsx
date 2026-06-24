@@ -468,7 +468,28 @@ export const AllRequests = ({
   };
 
   const handleExportRequestDetailsPDF = () => {
-    exportRequestDetailsPDF(selectedL1Details, selectedL2Details, selectedLog, activeTab, setToastMsg, selectedEffDetails);
+    // Mirror the exact same tab visibility conditions used in the modal tab header
+    const showL2 = selectedL1Details?.hodStatus !== 'Rejected';
+    const showL3 = showL2 && selectedL2Details?.status === 'Accepted';
+    const showEff = showL3 && (
+      (selectedLog?.status || '').toLowerCase() === 'completed' ||
+      selectedEffDetails !== null
+    );
+
+    // Determine the export scope based on which tabs are visible
+    let targetTab;
+    if (showEff) {
+      targetTab = 'all';            // 4 tabs visible → export everything
+    } else if (showL3) {
+      targetTab = 'l3';             // 3 tabs visible → export L1 + L2 + L3
+    } else if (showL2) {
+      targetTab = 'l2';             // 2 tabs visible → export L1 + L2 only
+    } else {
+      targetTab = 'l1';             // only L1 tab visible → export L1 only
+    }
+
+    const currentEffLog = showEff ? (selectedEffDetails || null) : null;
+    exportRequestDetailsPDF(selectedL1Details, selectedL2Details, selectedLog, targetTab, setToastMsg, currentEffLog);
   };
 
   const handleClosePreview = () => {
@@ -813,13 +834,11 @@ export const AllRequests = ({
     if (tab === 'l1') {
 
       const processOptions = Array.from(new Set([
-        ...(dbProcesses.length > 0 ? dbProcesses : []),
-        ...(combinedData.map(i => i.processName).filter(Boolean)),
+        ...dbProcesses,
         ...(data.process_name ? [data.process_name] : [])
       ]));
       const machineOptions = Array.from(new Set([
-        ...(dbMachines.length > 0 ? dbMachines : []),
-        ...(combinedData.map(i => i.machineNo).filter(Boolean)),
+        ...dbMachines,
         ...(data.machine_no ? [data.machine_no] : [])
       ]));
 
@@ -958,16 +977,26 @@ export const AllRequests = ({
               {/* PROCESS NAME */}
               <div className="space-y-[4px]">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Process Name <span className="text-rose-500">*</span></label>
-                <select
-                  disabled
-                  value={data.process_name || ''}
-                  className="w-full bg-slate-100 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] text-slate-500 cursor-not-allowed outline-none font-semibold"
-                >
-                  <option value="">— Select or Add Process —</option>
-                  {processOptions.filter(p => p !== 'All').map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
+                {isAdmin ? (
+                  <select
+                    value={data.process_name || ''}
+                    onChange={(e) => setData({ ...data, process_name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200 text-slate-700 font-medium"
+                  >
+                    <option value="">— Select or Add Process —</option>
+                    {processOptions.filter(p => p !== 'All').map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={data.process_name || ''}
+                    onChange={(e) => setData({ ...data, process_name: e.target.value })}
+                    placeholder="Enter Process Name"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200 text-slate-700 font-medium"
+                  />
+                )}
               </div>
 
               {/* PROCESS LINE */}
@@ -985,16 +1014,26 @@ export const AllRequests = ({
               {/* MACHINE NO */}
               <div className="space-y-[4px]">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Machine No <span className="text-rose-500">*</span></label>
-                <select
-                  value={data.machine_no || ''}
-                  onChange={(e) => setData({ ...data, machine_no: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200 text-slate-700 font-medium"
-                >
-                  <option value="">— Select or Add Machine —</option>
-                  {machineOptions.filter(m => m !== 'All').map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
+                {isAdmin ? (
+                  <select
+                    value={data.machine_no || ''}
+                    onChange={(e) => setData({ ...data, machine_no: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200 text-slate-700 font-medium"
+                  >
+                    <option value="">— Select or Add Machine —</option>
+                    {machineOptions.filter(m => m !== 'All').map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={data.machine_no || ''}
+                    onChange={(e) => setData({ ...data, machine_no: e.target.value })}
+                    placeholder="Enter Machine No"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200 text-slate-700 font-medium"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -1677,7 +1716,7 @@ export const AllRequests = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
             {renderFieldInput('PED Validation Attachment', 'weldTest')}
-            {renderFieldInput('QA Setup Verification Attachment', 'qaTest')}
+            {renderFieldInput('QAD Setup Verification Attachment', 'qaTest')}
           </div>
 
           <div className="mt-4 pt-4 border-t border-slate-100">
@@ -2509,7 +2548,6 @@ export const AllRequests = ({
 
                             {/* CUSTOMER APPROVAL REQUIRED */}
                             <div className="space-y-[4px]">
-                              <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Approval Required / Clearence Details</span>
                               <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5 text-[12px]">
 
                                 <span>{showCustomerApproval ? (selectedL1Details.customer_approval || '-') : '••••'}</span>
@@ -2607,7 +2645,7 @@ export const AllRequests = ({
                           </div>
 
                           <div className="space-y-[6px]">
-                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">QA Setup Verification Attachment</span>
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">QAD Setup Verification Attachment</span>
                             <div className="space-y-2">
                               {!selectedL2Details.qaTest || selectedL2Details.qaTest === '-' ? (
                                 <div className="bg-slate-50 border border-slate-200 rounded-[8px] p-3 text-slate-550 text-[12px] font-medium">
@@ -2770,7 +2808,7 @@ export const AllRequests = ({
                               </div>
                             </div>
                             <div className="space-y-[4px]">
-                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QA Approval</span>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Approval</span>
                               <div>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentEffLog.qaApproval === 'Approved'
                                     ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -2825,7 +2863,7 @@ export const AllRequests = ({
                 onClick={handleExportRequestDetailsPDF}
                 disabled={isFetchingDetails}
                 className="px-[16px] py-[8px] bg-[#0066cc] hover:bg-[#0052a3] text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-[6px] text-[12px] font-semibold transition-colors shadow-sm cursor-pointer flex items-center gap-[6px]"
-                title="Export this request's full details (L1, L2, L3) as PDF"
+                title="Export full details (L1, L2, L3 + Effectiveness if available) as PDF"
               >
                 <Download size={14} />
                 <span>Export PDF</span>

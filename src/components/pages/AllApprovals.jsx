@@ -74,7 +74,7 @@ const workflowStageConfig = (crStatus) => {
     case 'pending':
       return { label: 'L1 – HOD Review', color: 'bg-amber-50 border-amber-200 text-amber-700', dot: 'bg-amber-500', level: 'L1' };
     case 'evaluating':
-      return { label: 'L2 – QA Validation', color: 'bg-blue-50 border-blue-200 text-blue-700', dot: 'bg-blue-500', level: 'L2' };
+      return { label: 'L2 – QAD Validation', color: 'bg-blue-50 border-blue-200 text-blue-700', dot: 'bg-blue-500', level: 'L2' };
     case 'approved':
       return { label: 'L3 – HOD Decisions', color: 'bg-indigo-50 border-indigo-200 text-indigo-700', dot: 'bg-indigo-500', level: 'L3' };
     case 'completed':
@@ -107,7 +107,7 @@ const StatusBadge = ({ status, prefix = '' }) => {
 const WorkflowStrip = ({ crStatus, qaApproval }) => {
   const steps = [
     { key: 'L1', label: 'L1 HOD Review' },
-    { key: 'L2', label: 'L2 QA Validation' },
+    { key: 'L2', label: 'L2 QAD Validation' },
     { key: 'L3', label: 'L3 HOD Decisions' },
     { key: 'Eff', label: 'Effectiveness' },
     { key: 'Done', label: 'Closed' },
@@ -1209,7 +1209,6 @@ export const AllApprovals = ({
                           </div>
 
                           <div className="space-y-[4px]">
-                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Approval Required / Clearence Details</span>
                             <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5 text-[12px]">
                               <span>{showCustomerApproval ? (l1Details.customer_approval || '-') : '••••'}</span>
                               <button
@@ -1355,7 +1354,7 @@ export const AllApprovals = ({
                           </div>
 
                           <div className="space-y-[6px]">
-                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">QA Setup Verification Attachment</span>
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">QAD Setup Verification Attachment</span>
                             <div className="space-y-2">
                               {!selectedL2Details.qaTest || selectedL2Details.qaTest === '-' ? (
                                 <div className="bg-slate-50 border border-slate-200 rounded-[8px] p-3 text-slate-550 text-[12px] font-medium">
@@ -1517,7 +1516,7 @@ export const AllApprovals = ({
                               </div>
                             </div>
                             <div className="space-y-[4px]">
-                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QA Approval</span>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Approval</span>
                               <div>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentEffLog.qaApproval === 'Approved'
                                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -1641,11 +1640,11 @@ export const AllApprovals = ({
                       ) : (
                         <Clock size={14} />
                       )}
-                      L2 QA Validation {selectedL2Details.status === 'Accepted' ? 'Approved' : (selectedL2Details.status || 'Pending')}
+                      L2 QAD Validation {selectedL2Details.status === 'Accepted' ? 'Approved' : (selectedL2Details.status || 'Pending')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-2 text-[12px] font-bold px-3 py-1.5 rounded-xl border text-amber-700 bg-amber-50 border-amber-200">
-                      <Clock size={14} /> L2 QA Validation Pending
+                      <Clock size={14} /> L2 QAD Validation Pending
                     </span>
                   )
                 ) : (

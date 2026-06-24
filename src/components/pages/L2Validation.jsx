@@ -181,7 +181,7 @@ export const L2Validation = ({
       if (!formStatus) errors.status = 'Please select a validation status.';
       if (!formRemarks.trim()) errors.remarks = 'Remarks are required.';
       if (qaFiles.length === 0 && existingQaFiles.length === 0) {
-        errors.qaFile = 'QA attachment is required.';
+        errors.qaFile = 'QAD Setup Verification Attachment is required.';
       }
       const hasPedInDb = existingLog && existingLog.weldTest && existingLog.weldTest !== '-';
       if (pedFiles.length === 0 && !hasPedInDb) {
@@ -348,7 +348,7 @@ export const L2Validation = ({
   }
 
   const handleExportRequestDetailsPDF = () => {
-    exportRequestDetailsPDF(selectedL1Details, selectedL2Details, selectedLog, 'all', setToastMsg);
+    exportRequestDetailsPDF(selectedL1Details, selectedL2Details, selectedLog, 'l1', setToastMsg, null);
   };
 
   const handleCloseModal = () => {
@@ -457,7 +457,7 @@ export const L2Validation = ({
       matchesDecision = log.status === 'Accepted';
     } else if (decisionFilter === 'Rejected') {
       matchesDecision = log.status === 'Rejected';
-    } else if (decisionFilter === 'QA Approval Needed') {
+    } else if (decisionFilter === 'QAD Approval Needed') {
       matchesDecision = log.status === 'Pending' && log.weldTest && log.weldTest !== '-';
     } else if (decisionFilter === 'Pending Requester Validation') {
       matchesDecision = log.status === 'Pending' && (!log.weldTest || log.weldTest === '-');
@@ -506,7 +506,7 @@ export const L2Validation = ({
                 <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
                   <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Notice:</span> You are logged in as {isAdmin ? 'Admin' : 'QAD'}. You are authorized to complete the L2 validation status, remarks, and upload the <span className="font-semibold">QA Setup Verification Attachment</span>.
+                    <span className="font-bold">Notice:</span> You are logged in as {isAdmin ? 'Admin' : 'QAD'}. You are authorized to complete the L2 validation status, remarks, and upload the <span className="font-semibold">QAD Setup Verification Attachment</span>.
                   </div>
                 </div>
               )}
@@ -729,9 +729,9 @@ export const L2Validation = ({
               )}
             </div>
 
-            {/* APPROVER SET UP VERIFICATION (QA) ATTACHMENT */}
+            {/* APPROVER SET UP VERIFICATION (QAD) ATTACHMENT */}
             <div className="space-y-[4px]">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Approver Set Up Verification(QA) Attachment <span className="text-rose-500">*</span></label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Approver Set Up Verification(QAD) Attachment <span className="text-rose-500">*</span></label>
               <input
                 key={`qa-${formChangeNo}-${qaFiles.map(f => f.name).join(',')}`}
                 type="file"
@@ -777,7 +777,7 @@ export const L2Validation = ({
                 className={`w-full text-[11px] text-slate-555 file:mr-[8px] file:py-[4px] file:px-[8px] file:rounded-[4px] file:border file:bg-slate-50 file:text-[11px] file:font-semibold hover:file:bg-slate-100 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${fieldErrors.qaFile ? 'file:border-rose-400 border border-rose-300 rounded-[6px] p-1' : 'file:border-slate-200'
                   }`}
               />
-              {/* Selected QA file chips */}
+              {/* Selected QAD file chips */}
               {qaFiles.length > 0 && (
                 <div className="flex flex-wrap gap-[6px] mt-1">
                   {qaFiles.map((file, idx) => (
@@ -808,7 +808,7 @@ export const L2Validation = ({
                   ))}
                 </div>
               )}
-              {/* Already Uploaded QA Files */}
+              {/* Already Uploaded QAD Files */}
               {existingQaFiles.length > 0 && (
                 <div className="mt-1 flex flex-wrap gap-[6px]">
                   {existingQaFiles.map((file, idx) => (
@@ -937,7 +937,7 @@ export const L2Validation = ({
                   <span>Reset & Resubmit Validation</span>
                 </>
               ) : (matchedL2 && matchedL2.status === 'Pending' && isRaisedByUser && !isQualityOrAdmin && hasPedUploaded) ? (
-                <span>Awaiting QA Review</span>
+                <span>Awaiting QAD Review</span>
               ) : isAlreadyValidated ? (
                 <>
                   <Save size={14} />
@@ -976,7 +976,7 @@ export const L2Validation = ({
               >
                 <option value="All">All Decisions</option>
                 <option value="Rejected">Rejected</option>
-                <option value="QA Approval Needed">QA Approval Needed</option>
+                <option value="QAD Approval Needed">QAD Approval Needed</option>
                 <option value="Pending Requester Validation">Pending Requester Validation</option>
               </select>
             </div>
@@ -1005,7 +1005,7 @@ export const L2Validation = ({
                       <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider">Requested Date</th>
                       <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider">Change Request By</th>
                       <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider">Requester Validation</th>
-                      <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider">Approver Set Up Verification(QA)</th>
+                      <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider">Approver Set Up Verification(QAD)</th>
                       <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider">Approver Validation Status</th>
                       <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider">Remarks</th>
                       <th className="p-[12px] text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Actions</th>
@@ -1092,7 +1092,7 @@ export const L2Validation = ({
                               {log.status === 'Accepted'
                                 ? 'Approved'
                                 : log.status === 'Pending'
-                                  ? (log.weldTest && log.weldTest !== '-' ? 'QA Approval Needed' : 'Pending Requester Validation')
+                                  ? (log.weldTest && log.weldTest !== '-' ? 'QAD Approval Needed' : 'Pending Requester Validation')
                                   : log.status}
                             </span>
                           </td>
@@ -1153,7 +1153,7 @@ export const L2Validation = ({
                         {log.status === 'Accepted'
                           ? 'Approved'
                           : log.status === 'Pending'
-                            ? (log.weldTest && log.weldTest !== '-' ? 'QA Approval Needed' : 'Pending Requester Validation')
+                            ? (log.weldTest && log.weldTest !== '-' ? 'QAD Approval Needed' : 'Pending Requester Validation')
                             : log.status}
                       </span>
                     </div>
@@ -1191,7 +1191,7 @@ export const L2Validation = ({
                       </div>
 
                       <div className="flex flex-col gap-[2px] col-span-2">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QA Setup Verification</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Setup Verification</span>
                         <div className="flex flex-wrap gap-[4px] mt-0.5">
                           {(log.qaTest && log.qaTest !== '-'
                             ? log.qaTest.split(',').map(s => s.trim()).filter(Boolean)
@@ -1686,7 +1686,6 @@ export const L2Validation = ({
                     </div>
 
                     <div className="space-y-[4px]">
-                      <span className="block text-[10px] font-bold text-slate-550 uppercase tracking-wider">Customer Approval Required / Clearence Details</span>
                       <span className="font-semibold text-slate-755 flex items-center gap-1.5 mt-0.5 text-[12px]">
                         <span>{showCustomerApproval ? (selectedL1Details.customer_approval || '-') : '••••'}</span>
                         <button
