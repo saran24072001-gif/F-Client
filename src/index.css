@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-brand-purple: #0066cc;
+  --color-brand-purple-hover: #0052a3;
+  --color-brand-cyan: #06b6d4;
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #ffffff;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0066cc;
+}
+
+/* Float Animation */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-10px); }
+}
+
+/* Rotate Animation */
+@keyframes slow-rotate {
+  100% { transform: rotate(360deg); }
+}
+
+/* Glow Pulse Animation */
+@keyframes pulse-glow {
+  0% { filter: drop-shadow(0 0 2px #06b6d4); }
+  100% { filter: drop-shadow(0 0 12px #06b6d4); }
+}
+
+/* Move Pulse Along Connection Line */
+@keyframes move-pulse {
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
+}
+
+/* Alert Shake Animation */
+@keyframes alert-shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite alternate;
+}
+
+.animate-float-reverse {
+  animation: float 4s ease-in-out infinite alternate-reverse;
+}
+
+.animate-slow-rotate {
+  animation: slow-rotate 60s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite alternate;
+}
+
+.animate-alert-shake {
+  animation: alert-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Force all uppercase input/form labels to render in black */
+label.uppercase.tracking-wider {
+  color: #000000 !important;
+}
+
+/* Force all table header values to render in black and bold */
+thead th {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* Hide browser default password reveal and clear buttons (e.g. Edge, IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Notification Badge Blink Animation */
+@keyframes badge-blink {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  30% {
+    transform: scale(1.25);
+    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0);
+  }
+  60% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  }
+}
+
+.animate-badge-blink {
+  animation: badge-blink 1.6s ease-in-out infinite;
+}
