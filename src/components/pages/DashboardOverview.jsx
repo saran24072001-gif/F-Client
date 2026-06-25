@@ -664,7 +664,7 @@ export const DashboardOverview = ({
 
 
 
-  const formattedDbChanges = filteredChangesForTable.map((c, idx) => {
+  const formattedDbChanges = (changes || []).slice(0, 5).map((c, idx) => {
     const displayDate = formatDateToDDMMYY(c.rawDate || c.date);
     const displayStatus = getRequestDisplayStatus(c);
 
@@ -695,7 +695,7 @@ export const DashboardOverview = ({
   const pendingCount = dashboardCounts.pending;
 
   const allTableRows = formattedDbChanges;
-  const paginatedTableRows = allTableRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedTableRows = allTableRows;
 
   // Load details handler
   async function handleViewDetails(request, silent = false) {
@@ -863,80 +863,8 @@ export const DashboardOverview = ({
   };
 
   const handleExportPDF = () => {
-    let exportFilters = {};
-    if (isGridView) {
-      exportFilters = {
-        month: tableFilterMonth,
-        fromDate: tableFilterFromDate,
-        toDate: tableFilterToDate,
-        person: tableFilterPerson,
-        process: tableFilterProcess,
-        machine: tableFilterMachine,
-        status: 'All'
-      };
-    } else if (activeAnalyticsTab === 'Department') {
-      exportFilters = {
-        month: deptFilterMonth,
-        fromDate: deptFilterFromDate,
-        toDate: deptFilterToDate,
-        person: deptFilterPerson,
-        process: deptFilterProcess,
-        machine: deptFilterMachine,
-        status: 'All'
-      };
-    } else if (activeAnalyticsTab === 'Process') {
-      exportFilters = {
-        month: procFilterMonth,
-        fromDate: procFilterFromDate,
-        toDate: procFilterToDate,
-        person: procFilterPerson,
-        process: procFilterProcess,
-        machine: procFilterMachine,
-        status: 'All'
-      };
-    } else if (activeAnalyticsTab === '6M Category') {
-      exportFilters = {
-        month: catFilterMonth,
-        fromDate: catFilterFromDate,
-        toDate: catFilterToDate,
-        person: catFilterPerson,
-        process: catFilterProcess,
-        machine: catFilterMachine,
-        status: 'All'
-      };
-    } else if (activeAnalyticsTab === 'Monthly') {
-      exportFilters = {
-        month: monthFilterMonth,
-        fromDate: monthFilterFromDate,
-        toDate: monthFilterToDate,
-        person: monthFilterPerson,
-        process: monthFilterProcess,
-        machine: monthFilterMachine,
-        status: 'All'
-      };
-    } else if (activeAnalyticsTab === 'Approval Status') {
-      exportFilters = {
-        month: apprFilterMonth,
-        fromDate: apprFilterFromDate,
-        toDate: apprFilterToDate,
-        person: 'All',
-        process: 'All',
-        machine: 'All',
-        status: apprFilterStatus
-      };
-    } else if (activeAnalyticsTab === 'Improvement Benefits') {
-      exportFilters = {
-        month: benefitFilterMonth,
-        fromDate: '',
-        toDate: '',
-        person: 'All',
-        process: 'All',
-        machine: 'All',
-        status: `Benefits: ${benefitFilterType}`
-      };
-    }
-
-    exportDashboardRequestsPDF(filteredChangesForTable, exportFilters, setToastMsg);
+    const recentChangesOverall = (changes || []).slice(0, 5);
+    exportDashboardRequestsPDF(recentChangesOverall, {}, setToastMsg);
   };
 
 
@@ -4236,22 +4164,13 @@ export const DashboardOverview = ({
             <Clock size={18} className="text-slate-400" />
           </div>
           <div className="flex items-center gap-[12px] flex-wrap">
-            {(isGridView ? isTableFilterApplied : isTabFilterApplied(activeAnalyticsTab)) ? (
-              <button
-                onClick={isGridView ? resetTableFilters : () => resetTabFilters(activeAnalyticsTab)}
-                className="flex items-center gap-1 px-2.5 py-1.5 text-rose-600 hover:text-rose-700 bg-rose-50 border border-rose-100 hover:border-rose-200 rounded-lg text-xs font-bold transition-all cursor-pointer font-sans shadow-sm"
-              >
-                <X size={12} />
-                <span>Reset Filters</span>
-              </button>
-            ) : null}
             <span className="bg-slate-100 border border-slate-200 text-slate-500 rounded-full px-[10px] py-[2px] text-[10px] font-bold select-none">
-              Showing {filteredChangesForTable.length} of {changes.length}
+              Showing {Math.min(5, changes.length)} of {changes.length}
             </span>
             <button
               onClick={handleExportPDF}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0066cc] hover:bg-[#0052a3] text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer font-sans"
-              title="Export filtered dashboard requests to PDF"
+              title="Export recent change requests to PDF"
             >
               <Download size={12} />
               <span>Export PDF</span>
@@ -4259,42 +4178,11 @@ export const DashboardOverview = ({
           </div>
         </div>
 
-        {isGridView ? (
-          renderFilters({
-            monthVal: tableFilterMonth, setMonthVal: setTableFilterMonth,
-            fromDateVal: tableFilterFromDate, setFromDateVal: setTableFilterFromDate,
-            toDateVal: tableFilterToDate, setToDateVal: setTableFilterToDate,
-            personVal: tableFilterPerson, setPersonVal: setTableFilterPerson,
-            processVal: tableFilterProcess, setProcessVal: setTableFilterProcess,
-            machineVal: tableFilterMachine, setMachineVal: setTableFilterMachine
-          })
-        ) : (
-          <div className="mx-[20px] my-[12px] p-[10px] bg-sky-50/50 border border-sky-100 rounded-lg flex items-center justify-between text-xs text-[#0066cc] font-medium">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#0066cc] animate-pulse" />
-              <span>
-                Table data synchronized with active <strong>{activeAnalyticsTab}</strong> analytics tab filters.
-              </span>
-            </div>
-            {isTabFilterApplied(activeAnalyticsTab) && (
-              <span className="text-[10px] bg-[#0066cc]/10 border border-[#0066cc]/20 rounded-md px-2 py-0.5 font-bold uppercase tracking-wider">
-                Filters Active
-              </span>
-            )}
-          </div>
-        )}
-
-
         <div className="overflow-x-auto">
           {isFetchingChanges ? (
             <div className="flex flex-col items-center justify-center py-[64px] gap-[8px] text-slate-400">
               <Loader2 className="animate-spin text-[#0066cc]" size={28} />
               <span className="text-[14px]">Fetching changes...</span>
-            </div>
-          ) : isActiveTabDateRangeIncomplete() ? (
-
-            <div className="p-6">
-              {renderDateRangePlaceholder()}
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
@@ -4313,7 +4201,7 @@ export const DashboardOverview = ({
                 {paginatedTableRows.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="text-center py-[24px] text-slate-400 text-[13px]">
-                      No matching change requests found.
+                      No recent change requests found.
                     </td>
                   </tr>
                 ) : (
@@ -4350,19 +4238,6 @@ export const DashboardOverview = ({
             </table>
           )}
         </div>
-        <TablePagination
-          rowsPerPageOptions={[5, 10]}
-          component="div"
-          count={allTableRows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(event, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(event) => {
-            setRowsPerPage(parseInt(event.target.value, 10));
-            setPage(0);
-          }}
-          className="border-t border-slate-100"
-        />
       </div>
 
       {/* Details Modal (L1, L2, L3 Tabs) */}

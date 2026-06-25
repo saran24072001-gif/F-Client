@@ -407,21 +407,27 @@ export const AllApprovals = ({
     if (!selectedReq) return;
     setIsSubmitting(true);
     try {
-      await submitHodApproval(selectedReq.changeNo, actingDept, status, remarks);
+      const targetDept = isAdmin 
+        ? (selectedReq.hodApprovalNote && selectedReq.hodApprovalNote !== '-' 
+            ? selectedReq.hodApprovalNote 
+            : selectedReq.dept)
+        : actingDept;
+
+      await submitHodApproval(selectedReq.changeNo, targetDept, status, remarks);
       if (setToastMsg) {
         if (status === 'Approved') {
           setToastMsg({
-            text: ` ${actingDept} HOD approval saved as "${status}" for ${selectedReq.changeNo}`,
+            text: ` ${targetDept} HOD approval saved as "${status}" for ${selectedReq.changeNo}`,
             isError: false
           });
         } else {
           setToastMsg({
-            text: ` ${actingDept} HOD approval saved as "${status}" for ${selectedReq.changeNo}`,
+            text: ` ${targetDept} HOD approval saved as "${status}" for ${selectedReq.changeNo}`,
             isError: true
           });
         }
       }
-      if (logAction) logAction('HOD Approval', `${status} for ${selectedReq.changeNo} by ${actingDept} HOD`);
+      if (logAction) logAction('HOD Approval', `${status} for ${selectedReq.changeNo} by ${targetDept} HOD`);
       await fetchRequests();
       if (fetchChanges) await fetchChanges();
       handleCloseModal();
@@ -540,6 +546,12 @@ export const AllApprovals = ({
   const isChangeClosed = !!(selectedReq && selectedReq.qaApproval === 'Approved');
 
   const selectedStage = selectedReq ? workflowStageConfig(selectedReq.crStatus) : null;
+
+  const requiredDept = selectedReq 
+    ? (selectedReq.hodApprovalNote && selectedReq.hodApprovalNote !== '-' 
+        ? selectedReq.hodApprovalNote 
+        : selectedReq.dept)
+    : '';
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-10">
@@ -872,7 +884,7 @@ export const AllApprovals = ({
               <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center gap-2 shrink-0">
                 <ShieldCheck size={13} className="text-amber-600 shrink-0" />
                 <p className="text-[11px] text-amber-800 font-semibold">
-                  <strong>L1 HOD Approval</strong> — You are reviewing this change request as <span className="text-[#0066cc] font-black">{actingDept}</span> HOD.
+                  <strong>L1 HOD Approval</strong> — You are reviewing this change request as <span className="text-[#0066cc] font-black">{isAdmin ? `Admin (on behalf of ${requiredDept})` : `${actingDept} HOD`}</span>.
                   {alreadyDecided
                     ? <span className="ml-1 text-slate-500 font-normal">A decision has already been recorded.</span>
                     : ''
@@ -1601,7 +1613,7 @@ export const AllApprovals = ({
                   ) : (isAdmin || (isHOD && isDeptInRequired(selectedReq.hodApprovalNote, selectedReq.dept, actingDept))) ? (
                     <>
                       <span className="text-[11px] font-bold text-slate-600">
-                        Your L1 decision as <span className="text-[#0066cc]">{actingDept}</span> HOD:
+                        Your L1 decision as <span className="text-[#0066cc]">{isAdmin ? `Admin (on behalf of ${requiredDept})` : `${actingDept} HOD`}</span>:
                       </span>
                       <button
                         onClick={() => handleDecision('Approved')}

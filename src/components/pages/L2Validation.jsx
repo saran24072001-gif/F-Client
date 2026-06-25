@@ -177,7 +177,7 @@ export const L2Validation = ({
       log => log.changeNo?.toLowerCase().trim() === formChangeNo.toLowerCase().trim()
     );
 
-    if (isQualityOrAdmin) {
+    if (isQualityOrAdmin && !areQadFieldsDisabled) {
       if (!formStatus) errors.status = 'Please select a validation status.';
       if (!formRemarks.trim()) errors.remarks = 'Remarks are required.';
       if (qaFiles.length === 0 && existingQaFiles.length === 0) {
@@ -187,7 +187,7 @@ export const L2Validation = ({
       if (pedFiles.length === 0 && !hasPedInDb) {
         errors.pedFile = ' attachment is required.';
       }
-    } else if (isRaisedByUserOrAdmin) {
+    } else if (isRaisedByUserOrAdmin || (isQualityOrAdmin && areQadFieldsDisabled)) {
       const hasPedInDb = existingLog && existingLog.weldTest && existingLog.weldTest !== '-';
       if (pedFiles.length === 0 && !hasPedInDb) {
         errors.pedFile = ' attachment is required.';
@@ -433,6 +433,8 @@ export const L2Validation = ({
 
   const isChangeClosed = !!(matchedChange && matchedChange.qaApproval === 'Approved');
 
+  const areQadFieldsDisabled = !formChangeNo.trim() || isChangeClosed || (!isAdmin && (!isQualityOrAdmin || isL2AlreadyValidated || !hasPedUploaded));
+
   const isSaveDisabled = isSubmitting || !formChangeNo.trim() || isChangeClosed || (!isAdmin && (!canEdit || (
     // If Accepted, completely locked
     (matchedL2 && matchedL2.status === 'Accepted') ||
@@ -440,7 +442,7 @@ export const L2Validation = ({
     (matchedL2 && matchedL2.status === 'Rejected' && !(isRaisedByUserOrAdmin && pedFiles.length > 0)) ||
     // If Pending, locked for standard requester since they already uploaded the PED file
     (matchedL2 && matchedL2.status === 'Pending' && isRaisedByUser && !isQualityOrAdmin && hasPedUploaded)
-  )));
+  ))) || (isQuality && !isAdmin && !isRaisedByUser && !hasPedUploaded);
 
   // Filter logic
   const filteredLogs = tableLogs.filter(log => {
@@ -502,7 +504,16 @@ export const L2Validation = ({
                 </div>
               )}
 
-              {formChangeNo && !isRaisedByUser && isQualityOrAdmin && !isL2AlreadyValidated && (
+              {formChangeNo && !hasPedUploaded && isQualityOrAdmin && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
+                  <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Awaiting Requester Validation:</span> The requester has not completed their validation attachment yet. QAD fields will remain disabled until the requester attachment is uploaded.
+                  </div>
+                </div>
+              )}
+
+              {formChangeNo && !isRaisedByUser && isQualityOrAdmin && !isL2AlreadyValidated && hasPedUploaded && (
                 <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
                   <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5" />
                   <div>
@@ -513,9 +524,9 @@ export const L2Validation = ({
 
               {formChangeNo && isRaisedByUser && isQualityOrAdmin && !isL2AlreadyValidated && (
                 <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
-                  <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                  <AlertTriangle size={14} className="text-blue-505 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Notice:</span> You are the creator of this change request and {isAdmin ? 'an Admin' : 'a QAD'} member. You have full permissions to update all L2 validation fields.
+                    <span className="font-bold">Notice:</span> You are the creator of this change request and {isAdmin ? 'an Admin' : 'a QAD'} member. {!hasPedUploaded ? 'Please upload the Requester Validation Attachment first. After saving, you will be authorized to update the remaining L2 validation fields.' : 'You have full permissions to update all L2 validation fields.'}
                   </div>
                 </div>
               )}
@@ -737,7 +748,7 @@ export const L2Validation = ({
                 type="file"
                 multiple
                 accept="image/*,application/pdf"
-                disabled={!formChangeNo.trim() || isChangeClosed || (!isAdmin && (!isQualityOrAdmin || isL2AlreadyValidated))}
+                disabled={areQadFieldsDisabled}
                 onChange={(e) => {
                   if (e.target.files && e.target.files.length > 0) {
                     const files = Array.from(e.target.files);
@@ -859,7 +870,7 @@ export const L2Validation = ({
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Approver Validation Status <span className="text-rose-500">*</span></label>
               <select
                 value={formStatus}
-                disabled={!formChangeNo.trim() || isChangeClosed || (!isAdmin && (!isQualityOrAdmin || isL2AlreadyValidated))}
+                disabled={areQadFieldsDisabled}
                 onChange={(e) => {
                   setFormStatus(e.target.value);
                   setFieldErrors(prev => ({ ...prev, status: '' }));
@@ -887,7 +898,7 @@ export const L2Validation = ({
                 rows={3}
                 value={formRemarks}
                 maxLength={1000}
-                disabled={!formChangeNo.trim() || isChangeClosed || (!isAdmin && (!isQualityOrAdmin || isL2AlreadyValidated))}
+                disabled={areQadFieldsDisabled}
                 onChange={(e) => {
                   setFormRemarks(e.target.value);
                   setFieldErrors(prev => ({ ...prev, remarks: '' }));
@@ -927,6 +938,8 @@ export const L2Validation = ({
                 <span>Validation is Closed</span>
               ) : !canEdit ? (
                 <span>Access Restricted</span>
+              ) : (isQuality && !isAdmin && !isRaisedByUser && !hasPedUploaded) ? (
+                <span>Awaiting Requester Attachment</span>
               ) : (matchedL2 && matchedL2.status === 'Accepted') && !isAdmin ? (
                 <span>Validation Locked (Approved)</span>
               ) : (matchedL2 && matchedL2.status === 'Rejected' && !(isRaisedByUserOrAdmin && pedFiles.length > 0)) && !isAdmin ? (
