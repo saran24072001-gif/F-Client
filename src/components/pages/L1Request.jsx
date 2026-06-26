@@ -1745,7 +1745,7 @@ export const L1Request = ({
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">User Dept HOD Approval <span className="text-rose-500">*</span></label>
               {dbDepartments.length > 0 ? (
                 <div className="flex flex-wrap gap-[10px] pt-[4px]">
-                  {dbDepartments.map((deptName) => {
+                  {dbDepartments.filter(deptName => deptName.toUpperCase() !== 'GENERAL').map((deptName) => {
                     const isChecked = hodApproval && hodApproval.trim() === deptName;
                     return (
                       <label 
