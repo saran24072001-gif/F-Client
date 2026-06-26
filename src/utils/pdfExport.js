@@ -513,6 +513,81 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
         },
         margin: { left: 40, right: 40 }
       });
+
+      // Render Cost/Productivity/Quality Improvement Table Data if present
+      if (selectedL1Details.improvement_table_data) {
+        try {
+          const tableData = JSON.parse(selectedL1Details.improvement_table_data);
+          if (Array.isArray(tableData) && tableData.length > 0) {
+            const area = (selectedL1Details.improvement_area || '').toLowerCase();
+            const hasCost = area === 'cost';
+            const hasProductivity = area === 'productivity';
+            const hasQuality = area === 'quality';
+
+            if (hasCost || hasProductivity || hasQuality) {
+              let tableHeaders = [];
+              let tableRows = [];
+              let tableTitle = '';
+
+              if (hasCost) {
+                tableTitle = 'COST SAVING DATA';
+                tableHeaders = [['Sl No', '4M #', 'Date', 'Save/Month', 'Save/Annum', 'ROI']];
+                tableRows = tableData.map((row, idx) => [
+                  idx + 1,
+                  row.changeNo || '-',
+                  row.date || '-',
+                  `Rs. ${row.monthlySave || '0'}`,
+                  `Rs. ${row.annualSave || '0'}`,
+                  row.roi || '-'
+                ]);
+              } else if (hasProductivity) {
+                tableTitle = 'PRODUCTIVITY IMPROVEMENT DATA';
+                tableHeaders = [['Sl No', '4M #', 'Date', 'Current', 'Improved']];
+                tableRows = tableData.map((row, idx) => [
+                  idx + 1,
+                  row.changeNo || '-',
+                  row.date || '-',
+                  `${row.currentProd || '0'} nos`,
+                  `${row.improvedProd || '0'} nos`
+                ]);
+              } else if (hasQuality) {
+                tableTitle = 'QUALITY IMPROVEMENT DATA';
+                tableHeaders = [['Sl No', '4M #', 'Date', 'Current PPM', 'Reduced PPM']];
+                tableRows = tableData.map((row, idx) => [
+                  idx + 1,
+                  row.changeNo || '-',
+                  row.date || '-',
+                  row.currentPpm || '0',
+                  row.reducedPpm || '0'
+                ]);
+              }
+
+              autoTable(doc, {
+                startY: doc.lastAutoTable.finalY + 12,
+                head: [
+                  [{ content: tableTitle, colSpan: tableHeaders[0].length, styles: { halign: 'left', fillColor: [71, 85, 105], fontStyle: 'bold', fontSize: 9 } }],
+                  tableHeaders[0]
+                ],
+                body: tableRows,
+                theme: 'grid',
+                headStyles: {
+                  fillColor: [100, 116, 139], // Slate-500
+                  textColor: [255, 255, 255],
+                  fontSize: 8,
+                  fontStyle: 'bold'
+                },
+                bodyStyles: {
+                  fontSize: 8,
+                  textColor: textColor
+                },
+                margin: { left: 40, right: 40 }
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error rendering improvement table in PDF:', e);
+        }
+      }
     }
 
     // Section 3: Level 2 Validation Details (aligned with L2 modal tab fields)
