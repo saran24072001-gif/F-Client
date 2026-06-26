@@ -84,15 +84,15 @@ export const L1Request = ({
     setIsRefreshing(true);
     try {
       localStorage.removeItem('cms_l1_draft');
-      
+
       setUnit('UNIT-2');
-      
+
       const now = new Date();
       setRequestedDate(formatDateToDDMMYYYY(now));
       const hrs = String(now.getHours()).padStart(2, '0');
       const mins = String(now.getMinutes()).padStart(2, '0');
       setRequestedTime(`${hrs}:${mins}`);
-      
+
       setChangeIn({
         Man: false,
         Machine: false,
@@ -108,7 +108,7 @@ export const L1Request = ({
       setFileRisk('');
       setFileSop('');
       setUploadedFilesList([]);
-      
+
       let defaultDept = '';
       let defaultRequestBy = '';
       if (userEmail && systemUsers.length > 0) {
@@ -120,7 +120,7 @@ export const L1Request = ({
       }
       setDept(defaultDept);
       setRequestBy(defaultRequestBy);
-      
+
       setProcessName('');
       setProcessLine('');
       setMachineNo('');
@@ -322,8 +322,10 @@ export const L1Request = ({
   const [improvementArea, setImprovementArea] = useState('');
   const [changeType, setChangeType] = useState('');
   const [dateStart, setDateStart] = useState('');
+  const [openingQuantity, setOpeningQuantity] = useState('');
   const [traceFrom, setTraceFrom] = useState('');
   const [dateClose, setDateClose] = useState('');
+  const [closedQuantity, setClosedQuantity] = useState('');
   const [traceTo, setTraceTo] = useState('');
 
   // Risk Analysis State
@@ -365,8 +367,10 @@ export const L1Request = ({
           if (draft.improvementArea !== undefined) setImprovementArea(draft.improvementArea);
           if (draft.changeType !== undefined) setChangeType(draft.changeType);
           if (draft.dateStart !== undefined) setDateStart(draft.dateStart);
+          if (draft.openingQuantity !== undefined) setOpeningQuantity(draft.openingQuantity);
           if (draft.traceFrom !== undefined) setTraceFrom(draft.traceFrom);
           if (draft.dateClose !== undefined) setDateClose(draft.dateClose);
+          if (draft.closedQuantity !== undefined) setClosedQuantity(draft.closedQuantity);
           if (draft.traceTo !== undefined) setTraceTo(draft.traceTo);
           if (draft.riskAnalysis !== undefined) setRiskAnalysis(draft.riskAnalysis);
           if (draft.sopUpdate !== undefined) setSopUpdate(draft.sopUpdate);
@@ -412,8 +416,10 @@ export const L1Request = ({
         improvementArea,
         changeType,
         dateStart,
+        openingQuantity,
         traceFrom,
         dateClose,
+        closedQuantity,
         traceTo,
         riskAnalysis,
         sopUpdate,
@@ -449,8 +455,10 @@ export const L1Request = ({
     improvementArea,
     changeType,
     dateStart,
+    openingQuantity,
     traceFrom,
     dateClose,
+    closedQuantity,
     traceTo,
     riskAnalysis,
     sopUpdate,
@@ -467,7 +475,7 @@ export const L1Request = ({
 
   useEffect(() => {
     const area = (improvementArea || '').toLowerCase();
-    
+
     // If draft was loaded, synchronize lastAreaRef to avoid resetting table data
     if (draftLoadedRef.current) {
       lastAreaRef.current = area;
@@ -655,7 +663,7 @@ export const L1Request = ({
     if (!description || !description.trim()) {
       newErrors.description = 'Detailed description is required.';
     }
-    
+
     if (!improvementArea) {
       newErrors.improvementArea = 'Please select a Change Improvement Area.';
     } else {
@@ -808,8 +816,10 @@ export const L1Request = ({
       improvementArea,
       changeType,
       dateStart,
+      openingQuantity,
       traceFrom,
       dateClose,
+      closedQuantity,
       traceTo,
       riskAnalysis,
       sopUpdate,
@@ -865,133 +875,131 @@ export const L1Request = ({
             Not Applicable
           </div>
         ) : (
-        <>
-        <div className="flex gap-[8px] max-w-[400px]">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              readOnly
-              placeholder="e.g. proof-log.pdf, image.png"
-              className={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none transition-all duration-200 select-none ${
-                hasError
-                  ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10 text-rose-700'
-                  : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10 text-slate-500'
-              }`}
-              value={value}
-            />
-            {value && (
-              <button
-                type="button"
-                onClick={() => {
-                  setDeleteConfirm({
-                    title: 'Clear All Attachments?',
-                    message: 'Are you sure you want to clear all attachments from this field?',
-                    onConfirm: () => {
-                      setValue('');
-                      setUploadedFilesList(prev => prev.filter(f => f.fieldName !== fieldName));
+          <>
+            <div className="flex gap-[8px] max-w-[400px]">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  readOnly
+                  placeholder="e.g. proof-log.pdf, image.png"
+                  className={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none transition-all duration-200 select-none ${hasError
+                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10 text-rose-700'
+                      : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10 text-slate-500'
+                    }`}
+                  value={value}
+                />
+                {value && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteConfirm({
+                        title: 'Clear All Attachments?',
+                        message: 'Are you sure you want to clear all attachments from this field?',
+                        onConfirm: () => {
+                          setValue('');
+                          setUploadedFilesList(prev => prev.filter(f => f.fieldName !== fieldName));
+                          if (hasError) setErrors(prev => ({ ...prev, [fieldName]: '' }));
+                        }
+                      });
+                    }}
+                    className="absolute right-[10px] top-[10px] text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                    title="Clear all attachments"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+              <label className={`flex items-center justify-center gap-[6px] px-[12px] py-[8px] border rounded-[6px] text-[11px] font-bold shadow-sm transition-all cursor-pointer select-none ${hasError
+                  ? 'border-rose-300 bg-rose-50/10 hover:bg-rose-50/20 text-rose-600'
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-[#0066cc]'
+                }`}>
+                <Upload size={12} />
+                <span>Upload</span>
+                <input
+                  key={value || ''}
+                  type="file"
+                  multiple
+                  accept="image/*,application/pdf"
+                  id={inputId}
+                  className="hidden"
+                  onChange={async (e) => {
+                    const target = e.target;
+                    if (target.files && target.files.length > 0) {
+                      const files = Array.from(target.files);
+                      const MAX_SIZE = 100 * 1024 * 1024; // 100MB
+                      const tooLargeFiles = files.filter(f => f.size > MAX_SIZE);
+
+                      if (tooLargeFiles.length > 0) {
+                        setErrors(prev => ({
+                          ...prev,
+                          [fieldName]: `Upload not allowed: File(s) exceed 100MB limit: ${tooLargeFiles.map(f => f.name).join(', ')}`
+                        }));
+                        target.value = '';
+                        return;
+                      }
+
+                      const names = files.map(f => f.name.replace(/,/g, '_'));
+
+                      // Reset input value synchronously immediately to allow uploading the same file again
+                      target.value = '';
+
+                      // Convert files to base64 for server upload
+                      const base64Files = await Promise.all(
+                        files.map(async (file) => ({
+                          name: file.name.replace(/,/g, '_'),
+                          type: file.type || 'application/octet-stream',
+                          data: await fileToBase64(file),
+                          fieldName
+                        }))
+                      );
+
+                      setUploadedFilesList(prev => {
+                        const filtered = prev.filter(f => !(f.fieldName === fieldName && names.includes(f.name)));
+                        return [...filtered, ...base64Files];
+                      });
+
+                      const existing = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
+                      const updated = Array.from(new Set([...existing, ...names])).join(', ');
+                      setValue(updated);
                       if (hasError) setErrors(prev => ({ ...prev, [fieldName]: '' }));
                     }
-                  });
-                }}
-                className="absolute right-[10px] top-[10px] text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                title="Clear all attachments"
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
-          <label className={`flex items-center justify-center gap-[6px] px-[12px] py-[8px] border rounded-[6px] text-[11px] font-bold shadow-sm transition-all cursor-pointer select-none ${
-            hasError
-              ? 'border-rose-300 bg-rose-50/10 hover:bg-rose-50/20 text-rose-600'
-              : 'border-slate-200 bg-white hover:bg-slate-50 text-[#0066cc]'
-          }`}>
-            <Upload size={12} />
-            <span>Upload</span>
-            <input
-              key={value || ''}
-              type="file"
-              multiple
-              accept="image/*,application/pdf"
-              id={inputId}
-              className="hidden"
-              onChange={async (e) => {
-                const target = e.target;
-                if (target.files && target.files.length > 0) {
-                  const files = Array.from(target.files);
-                  const MAX_SIZE = 100 * 1024 * 1024; // 100MB
-                  const tooLargeFiles = files.filter(f => f.size > MAX_SIZE);
-
-                  if (tooLargeFiles.length > 0) {
-                    setErrors(prev => ({
-                      ...prev,
-                      [fieldName]: `Upload not allowed: File(s) exceed 100MB limit: ${tooLargeFiles.map(f => f.name).join(', ')}`
-                    }));
-                    target.value = '';
-                    return;
-                  }
-
-                  const names = files.map(f => f.name.replace(/,/g, '_'));
-
-                  // Reset input value synchronously immediately to allow uploading the same file again
-                  target.value = '';
-
-                  // Convert files to base64 for server upload
-                  const base64Files = await Promise.all(
-                    files.map(async (file) => ({
-                      name: file.name.replace(/,/g, '_'),
-                      type: file.type || 'application/octet-stream',
-                      data: await fileToBase64(file),
-                      fieldName
-                    }))
-                  );
-
-                  setUploadedFilesList(prev => {
-                    const filtered = prev.filter(f => !(f.fieldName === fieldName && names.includes(f.name)));
-                    return [...filtered, ...base64Files];
-                  });
-
-                  const existing = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
-                  const updated = Array.from(new Set([...existing, ...names])).join(', ');
-                  setValue(updated);
-                  if (hasError) setErrors(prev => ({ ...prev, [fieldName]: '' }));
-                }
-              }}
-            />
-          </label>
-        </div>
-
-        {/* Selected File Pills */}
-        {value && (
-          <div className="flex flex-wrap gap-[6px] pt-[4px]">
-            {value.split(',').map(s => s.trim()).filter(Boolean).map((file, i) => (
-              <span key={i} className="inline-flex items-center gap-[4px] bg-slate-100 border border-slate-200 text-[10px] font-medium text-slate-700 px-[8px] py-[2px] rounded-full select-none">
-                <span className="truncate max-w-[150px] font-semibold">
-                  📎 {file}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDeleteConfirm({
-                      title: 'Delete Attachment?',
-                      message: `Are you sure you want to delete "${file}"? This action cannot be undone.`,
-                      onConfirm: () => {
-                        const existing = value.split(',').map(s => s.trim()).filter(Boolean);
-                        const updated = existing.filter(f => f !== file).join(', ');
-                        setValue(updated);
-                        setUploadedFilesList(prev => prev.filter(f => !(f.fieldName === fieldName && f.name === file)));
-                        if (hasError) setErrors(prev => ({ ...prev, [fieldName]: '' }));
-                      }
-                    });
                   }}
-                  className="text-slate-450 hover:text-rose-650 font-bold ml-[2px] cursor-pointer text-[12px]"
-                >
-                  &times;
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-        </>
+                />
+              </label>
+            </div>
+
+            {/* Selected File Pills */}
+            {value && (
+              <div className="flex flex-wrap gap-[6px] pt-[4px]">
+                {value.split(',').map(s => s.trim()).filter(Boolean).map((file, i) => (
+                  <span key={i} className="inline-flex items-center gap-[4px] bg-slate-100 border border-slate-200 text-[10px] font-medium text-slate-700 px-[8px] py-[2px] rounded-full select-none">
+                    <span className="truncate max-w-[150px] font-semibold">
+                      📎 {file}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteConfirm({
+                          title: 'Delete Attachment?',
+                          message: `Are you sure you want to delete "${file}"? This action cannot be undone.`,
+                          onConfirm: () => {
+                            const existing = value.split(',').map(s => s.trim()).filter(Boolean);
+                            const updated = existing.filter(f => f !== file).join(', ');
+                            setValue(updated);
+                            setUploadedFilesList(prev => prev.filter(f => !(f.fieldName === fieldName && f.name === file)));
+                            if (hasError) setErrors(prev => ({ ...prev, [fieldName]: '' }));
+                          }
+                        });
+                      }}
+                      className="text-slate-450 hover:text-rose-650 font-bold ml-[2px] cursor-pointer text-[12px]"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </>
         )}
         {hasError && value !== 'N/A' && <span className="text-rose-500 text-[10px] block mt-[2px]">{hasError}</span>}
       </div>
@@ -1037,11 +1045,10 @@ export const L1Request = ({
                   setUnit(e.target.value);
                   if (errors.unit) setErrors(prev => ({ ...prev, unit: '' }));
                 }}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.unit 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.unit
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               >
                 <option value="">— Select Unit —</option>
                 <option value="UNIT-2">UNIT-2</option>
@@ -1139,11 +1146,10 @@ export const L1Request = ({
                 id="dept"
                 value={dept}
                 placeholder="Auto-captured department"
-                className={`w-full border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none font-semibold cursor-not-allowed ${
-                  errors.dept 
-                    ? 'border-rose-500 bg-rose-50/20 text-rose-700' 
+                className={`w-full border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none font-semibold cursor-not-allowed ${errors.dept
+                    ? 'border-rose-500 bg-rose-50/20 text-rose-700'
                     : 'border-slate-200 bg-slate-100 text-slate-550'
-                }`}
+                  }`}
               />
               <span className="block text-[9px] text-slate-400 mt-[2px]">Auto-captured from logged-in user</span>
               {errors.dept && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.dept}</span>}
@@ -1158,11 +1164,10 @@ export const L1Request = ({
                 id="requestBy"
                 value={requestBy}
                 placeholder="Select Department to populate"
-                className={`w-full border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none font-semibold cursor-not-allowed ${
-                  errors.requestBy
+                className={`w-full border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none font-semibold cursor-not-allowed ${errors.requestBy
                     ? 'border-rose-500 bg-rose-50/20 text-rose-700'
                     : 'border-slate-200 bg-slate-100 text-slate-550'
-                }`}
+                  }`}
               />
               {errors.requestBy && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.requestBy}</span>}
             </div>
@@ -1179,11 +1184,10 @@ export const L1Request = ({
                       setProcessName(e.target.value);
                       if (errors.processName) setErrors(prev => ({ ...prev, processName: '' }));
                     }}
-                    className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                      errors.processName 
-                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                    className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.processName
+                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                         : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                    }`}
+                      }`}
                   >
                     <option value="">— Select or Add Process —</option>
                     {dbProcesses.map(p => (
@@ -1212,11 +1216,10 @@ export const L1Request = ({
                     setProcessName(e.target.value);
                     if (errors.processName) setErrors(prev => ({ ...prev, processName: '' }));
                   }}
-                  className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                    errors.processName 
-                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                  className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.processName
+                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                       : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                  }`}
+                    }`}
                 />
               )}
               {errors.processName && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.processName}</span>}
@@ -1235,11 +1238,10 @@ export const L1Request = ({
                   setProcessLine(e.target.value);
                   if (errors.processLine) setErrors(prev => ({ ...prev, processLine: '' }));
                 }}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.processLine 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.processLine
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               />
               <div className="flex justify-between items-center text-[9px] text-slate-400">
                 {errors.processLine ? (
@@ -1265,11 +1267,10 @@ export const L1Request = ({
                       setMachineNo(e.target.value);
                       if (errors.machineNo) setErrors(prev => ({ ...prev, machineNo: '' }));
                     }}
-                    className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                      errors.machineNo 
-                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                    className={`flex-1 bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.machineNo
+                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                         : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                    }`}
+                      }`}
                   >
                     <option value="">— Select or Add Machine —</option>
                     {dbMachines.map(m => (
@@ -1298,11 +1299,10 @@ export const L1Request = ({
                     setMachineNo(e.target.value);
                     if (errors.machineNo) setErrors(prev => ({ ...prev, machineNo: '' }));
                   }}
-                  className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 sm:max-w-[49%] lg:max-w-[24.4%] ${
-                    errors.machineNo 
-                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                  className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 sm:max-w-[49%] lg:max-w-[24.4%] ${errors.machineNo
+                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                       : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                  }`}
+                    }`}
                 />
               )}
               {errors.machineNo && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.machineNo}</span>}
@@ -1328,11 +1328,10 @@ export const L1Request = ({
                   if (errors.context) setErrors(prev => ({ ...prev, context: '' }));
                 }}
                 rows={4}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
-                  errors.context 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${errors.context
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               />
               <div className="flex justify-between items-center text-[9px] text-slate-400">
                 {errors.context ? (
@@ -1351,7 +1350,7 @@ export const L1Request = ({
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Detailed Change Description <span className="text-rose-500">*</span></label>
               <textarea
                 id="description"
-                placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
+                placeholder="Describe the change — what, why, how, and expected outcome "
                 value={description}
                 maxLength={1000}
                 onChange={(e) => {
@@ -1359,11 +1358,10 @@ export const L1Request = ({
                   if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
                 }}
                 rows={4}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
-                  errors.description 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${errors.description
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               />
               <div className="flex justify-between items-center text-[9px] text-slate-400">
                 {errors.description ? (
@@ -1399,11 +1397,10 @@ export const L1Request = ({
                   setImprovementArea(e.target.value);
                   if (errors.improvementArea) setErrors(prev => ({ ...prev, improvementArea: '' }));
                 }}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.improvementArea 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.improvementArea
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               >
                 <option value="">— Select Area —</option>
                 <option value="Productivity">Productivity</option>
@@ -1427,11 +1424,10 @@ export const L1Request = ({
                     onClick={() => {
                       setIsImprovementModalOpen(true);
                     }}
-                    className={`flex items-center gap-[8px] px-[16px] py-[8px] rounded-[6px] text-[12px] font-bold shadow-sm transition-all transform active:scale-[0.98] cursor-pointer ${
-                      errors.improvementTable
+                    className={`flex items-center gap-[8px] px-[16px] py-[8px] rounded-[6px] text-[12px] font-bold shadow-sm transition-all transform active:scale-[0.98] cursor-pointer ${errors.improvementTable
                         ? 'bg-rose-50 border border-rose-500 text-rose-600 hover:bg-rose-100'
                         : 'bg-[#0066cc] hover:bg-[#0052a3] text-white'
-                    }`}
+                      }`}
                   >
                     <Plus size={14} />
                     <span>{improvementArea} Table</span>
@@ -1458,11 +1454,10 @@ export const L1Request = ({
                   }
                   if (errors.changeType) setErrors(prev => ({ ...prev, changeType: '' }));
                 }}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.changeType 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.changeType
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               >
                 <option value="">— Select —</option>
                 <option value="Permanent">Permanent</option>
@@ -1484,14 +1479,26 @@ export const L1Request = ({
                 readOnly={true}
                 minDate={requestedDate}
                 containerClassName=""
-                inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.dateStart 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.dateStart
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
                 buttonClassName="right-[10px] top-[50%] -translate-y-1/2"
               />
               {errors.dateStart && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.dateStart}</span>}
+            </div>
+
+            {/* OPENING QUANTITY */}
+            <div className="space-y-[4px]">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Opening Quantity</label>
+              <input
+                type="number"
+                id="openingQuantity"
+                placeholder="Enter Quantity"
+                value={openingQuantity}
+                onChange={(e) => setOpeningQuantity(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 focus:ring-[#0066cc]/10 focus:border-[#0066cc] transition-all duration-200"
+              />
             </div>
 
             {/* PART TRACEABILITY DETAILS (FROM CHANGES) */}
@@ -1499,7 +1506,7 @@ export const L1Request = ({
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Part Traceability Details (From Changes) <span className="text-rose-500">*</span></label>
               <textarea
                 id="traceFrom"
-                placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
+                placeholder="Describe the change — what, why, how, and expected outcome "
                 value={traceFrom}
                 maxLength={1000}
                 onChange={(e) => {
@@ -1507,11 +1514,10 @@ export const L1Request = ({
                   if (errors.traceFrom) setErrors(prev => ({ ...prev, traceFrom: '' }));
                 }}
                 rows={3}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
-                  errors.traceFrom 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${errors.traceFrom
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               />
               <div className="flex justify-between items-center text-[9px] text-slate-400">
                 {errors.traceFrom ? (
@@ -1564,15 +1570,28 @@ export const L1Request = ({
                   readOnly={true}
                   minDate={dateStart || requestedDate}
                   containerClassName=""
-                  inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                    errors.dateClose 
-                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                  inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.dateClose
+                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                       : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                  }`}
+                    }`}
                   buttonClassName="right-[10px] top-[50%] -translate-y-1/2"
                 />
               )}
               {errors.dateClose && dateClose !== 'N/A' && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.dateClose}</span>}
+            </div>
+
+            {/* CLOSED QUANTITY */}
+            <div className="space-y-[4px]">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Closed Quantity</label>
+              <input
+                type="number"
+                id="closedQuantity"
+                placeholder="Enter Quantity"
+                value={closedQuantity}
+                disabled={changeType === 'Temporary' && dateClose === 'N/A'}
+                onChange={(e) => setClosedQuantity(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 focus:ring-[#0066cc]/10 focus:border-[#0066cc] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
             </div>
 
             {/* PART TRACEABILITY DETAILS (TO CHANGES) */}
@@ -1602,7 +1621,7 @@ export const L1Request = ({
                 <>
                   <textarea
                     id="traceTo"
-                    placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
+                    placeholder="Describe the change — what, why, how, and expected outcome "
                     value={traceTo}
                     maxLength={1000}
                     onChange={(e) => {
@@ -1610,11 +1629,10 @@ export const L1Request = ({
                       if (errors.traceTo) setErrors(prev => ({ ...prev, traceTo: '' }));
                     }}
                     rows={3}
-                    className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
-                      errors.traceTo 
-                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                    className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${errors.traceTo
+                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                         : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                    }`}
+                      }`}
                   />
                   <div className="flex justify-between items-center text-[9px] text-slate-400 mt-1">
                     {errors.traceTo ? (
@@ -1633,11 +1651,11 @@ export const L1Request = ({
             {/* UPLOAD SUPPORTING FILES */}
             <div className="space-y-[4px]">
               {renderAttachmentInput(
-                "Upload Supporting Files", 
-                fileTraceTo, 
-                setFileTraceTo, 
-                "file-traceto-input", 
-                "fileTraceTo", 
+                "Upload Supporting Files",
+                fileTraceTo,
+                setFileTraceTo,
+                "file-traceto-input",
+                "fileTraceTo",
                 true,
                 changeType === 'Permanent' ? (
                   <select
@@ -1681,11 +1699,10 @@ export const L1Request = ({
                   if (errors.riskAnalysis) setErrors(prev => ({ ...prev, riskAnalysis: '' }));
                 }}
                 rows={3}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
-                  errors.riskAnalysis 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${errors.riskAnalysis
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               />
               <div className="flex justify-between items-center text-[9px] text-slate-400">
                 {errors.riskAnalysis ? (
@@ -1717,11 +1734,10 @@ export const L1Request = ({
                   if (errors.sopUpdate) setErrors(prev => ({ ...prev, sopUpdate: '' }));
                 }}
                 rows={3}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
-                  errors.sopUpdate 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${errors.sopUpdate
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               />
               <div className="flex justify-between items-center text-[9px] text-slate-400">
                 {errors.sopUpdate ? (
@@ -1748,15 +1764,14 @@ export const L1Request = ({
                   {dbDepartments.filter(deptName => deptName.toUpperCase() !== 'GENERAL').map((deptName) => {
                     const isChecked = hodApproval && hodApproval.trim() === deptName;
                     return (
-                      <label 
-                        key={deptName} 
-                        className={`flex items-center gap-[8px] py-[6px] px-[12px] border rounded-[6px] cursor-pointer hover:bg-slate-50 transition-all w-fit select-none ${
-                          isChecked 
-                            ? 'border-[#0066cc] bg-[#0066cc]/5' 
+                      <label
+                        key={deptName}
+                        className={`flex items-center gap-[8px] py-[6px] px-[12px] border rounded-[6px] cursor-pointer hover:bg-slate-50 transition-all w-fit select-none ${isChecked
+                            ? 'border-[#0066cc] bg-[#0066cc]/5'
                             : errors.hodApproval
-                            ? 'border-rose-300 bg-rose-50/10'
-                            : 'border-slate-200 bg-white'
-                        }`}
+                              ? 'border-rose-300 bg-rose-50/10'
+                              : 'border-slate-200 bg-white'
+                          }`}
                       >
                         <input
                           type="radio"
@@ -1792,11 +1807,10 @@ export const L1Request = ({
                   setCustomerApproval(e.target.value);
                   if (errors.customerApproval) setErrors(prev => ({ ...prev, customerApproval: '' }));
                 }}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.customerApproval 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${errors.customerApproval
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10'
                     : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
+                  }`}
               >
                 <option value="">— Select —</option>
                 <option value="Yes">Yes</option>
@@ -1814,7 +1828,7 @@ export const L1Request = ({
           <div className="text-[11px] font-bold text-black-400 sm:flex-1 text-left w-full sm:w-auto mt-auto mb-2 sm:mb-0">
             DOC NO : PRD/FR/156 R1
           </div>
-          
+
           <div className="flex flex-col items-center justify-center gap-2 sm:flex-1">
             <button
               type="submit"
@@ -2049,9 +2063,9 @@ export const L1Request = ({
           <div className="relative bg-white w-full max-w-[850px] rounded-[16px] shadow-2xl border border-slate-200 flex flex-col z-10 max-h-[85vh] overflow-hidden animate-fade-in-up">
             <div className="bg-slate-50 px-[24px] py-[16px] border-b border-slate-100 flex items-center justify-between rounded-t-[16px]">
               <h4 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">
-                {(improvementArea || '').toLowerCase() === 'cost' ? 'Cost Saving Data Table' : 
-                 (improvementArea || '').toLowerCase() === 'productivity' ? 'Productivity Improvement Data Table' : 
-                 'Quality Improvement Data Table'}
+                {(improvementArea || '').toLowerCase() === 'cost' ? 'Cost Saving Data Table' :
+                  (improvementArea || '').toLowerCase() === 'productivity' ? 'Productivity Improvement Data Table' :
+                    'Quality Improvement Data Table'}
               </h4>
               <button onClick={() => setIsImprovementModalOpen(false)} className="p-[4px] hover:bg-slate-200/60 rounded-full text-slate-400 hover:text-slate-650 transition-colors">
                 <X size={18} />
@@ -2107,9 +2121,8 @@ export const L1Request = ({
                             readOnly={true}
                             minDate={requestedDate}
                             placeholder="dd/mm/yyyy"
-                            inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[6px] pl-[10px] pr-[24px] text-[11px] outline-none focus:border-[#0066cc] ${
-                              modalError && !row.date ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                            }`}
+                            inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[6px] pl-[10px] pr-[24px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.date ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                              }`}
                             buttonClassName="right-[6px] top-[50%] -translate-y-1/2"
                           />
                         </td>
@@ -2121,9 +2134,8 @@ export const L1Request = ({
                                 placeholder="0"
                                 value={row.monthlySave}
                                 onChange={(e) => handleUpdateCell(idx, 'monthlySave', e.target.value)}
-                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${
-                                  modalError && !row.monthlySave ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                                }`}
+                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.monthlySave ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                                  }`}
                               />
                             </td>
                             <td className="p-[8px]">
@@ -2132,9 +2144,8 @@ export const L1Request = ({
                                 placeholder="0"
                                 value={row.annualSave}
                                 onChange={(e) => handleUpdateCell(idx, 'annualSave', e.target.value)}
-                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${
-                                  modalError && !row.annualSave ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                                }`}
+                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.annualSave ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                                  }`}
                               />
                             </td>
                             <td className="p-[8px]">
@@ -2143,9 +2154,8 @@ export const L1Request = ({
                                 placeholder="0"
                                 value={row.roi}
                                 onChange={(e) => handleUpdateCell(idx, 'roi', e.target.value)}
-                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${
-                                  modalError && !row.roi ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                                }`}
+                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.roi ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                                  }`}
                               />
                             </td>
                           </>
@@ -2158,9 +2168,8 @@ export const L1Request = ({
                                 placeholder="0"
                                 value={row.currentProd}
                                 onChange={(e) => handleUpdateCell(idx, 'currentProd', e.target.value)}
-                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${
-                                  modalError && !row.currentProd ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                                }`}
+                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.currentProd ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                                  }`}
                               />
                             </td>
                             <td className="p-[8px]">
@@ -2169,9 +2178,8 @@ export const L1Request = ({
                                 placeholder="0"
                                 value={row.improvedProd}
                                 onChange={(e) => handleUpdateCell(idx, 'improvedProd', e.target.value)}
-                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${
-                                  modalError && !row.improvedProd ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                                }`}
+                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.improvedProd ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                                  }`}
                               />
                             </td>
                           </>
@@ -2184,9 +2192,8 @@ export const L1Request = ({
                                 placeholder="0"
                                 value={row.currentPpm}
                                 onChange={(e) => handleUpdateCell(idx, 'currentPpm', e.target.value)}
-                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${
-                                  modalError && !row.currentPpm ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                                }`}
+                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.currentPpm ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                                  }`}
                               />
                             </td>
                             <td className="p-[8px]">
@@ -2195,9 +2202,8 @@ export const L1Request = ({
                                 placeholder="0"
                                 value={row.reducedPpm}
                                 onChange={(e) => handleUpdateCell(idx, 'reducedPpm', e.target.value)}
-                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${
-                                  modalError && !row.reducedPpm ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
-                                }`}
+                                className={`w-full bg-slate-50 border rounded-[6px] py-[6px] px-[10px] text-[11px] outline-none focus:border-[#0066cc] ${modalError && !row.reducedPpm ? 'border-rose-500 bg-rose-50/10 focus:border-rose-500' : 'border-slate-200'
+                                  }`}
                               />
                             </td>
                           </>

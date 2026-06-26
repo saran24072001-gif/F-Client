@@ -605,7 +605,7 @@ export const DashboardOverview = ({
         }
       }
 
-      const matchesSearch = !benefitFilterSearch || 
+      const matchesSearch = !benefitFilterSearch ||
         (c.changeNo && c.changeNo.toLowerCase().includes(benefitFilterSearch.toLowerCase())) ||
         (c.id && c.id.toLowerCase().includes(benefitFilterSearch.toLowerCase()));
 
@@ -1244,10 +1244,10 @@ export const DashboardOverview = ({
         <label className="block font-bold text-slate-400 uppercase tracking-wider">By Status</label>
         <select
           className={`w-full px-[6px] py-[4px] border rounded-[4px] outline-none transition-all duration-200 ${statusVal === 'Approved' || statusVal === 'L3 Approved' ? 'text-emerald-600 border-emerald-355 bg-emerald-50/10 font-bold' :
-              statusVal === 'Rejected' ? 'text-rose-600 border-rose-350 bg-rose-50/10 font-bold' :
-                statusVal === 'Closed' ? 'text-blue-600 border-blue-350 bg-blue-50/10 font-bold' :
-                  statusVal === 'Pending' ? 'text-amber-600 border-amber-350 bg-amber-50/10 font-bold' :
-                    'text-slate-500 border-slate-200 bg-white font-medium'
+            statusVal === 'Rejected' ? 'text-rose-600 border-rose-350 bg-rose-50/10 font-bold' :
+              statusVal === 'Closed' ? 'text-blue-600 border-blue-350 bg-blue-50/10 font-bold' :
+                statusVal === 'Pending' ? 'text-amber-600 border-amber-350 bg-amber-50/10 font-bold' :
+                  'text-slate-500 border-slate-200 bg-white font-medium'
             }`}
           value={statusVal}
           onChange={(e) => setStatusVal(e.target.value)}
@@ -1447,9 +1447,7 @@ export const DashboardOverview = ({
   };
 
   const renderProcessChart = (dataList, height = 'h-[160px]') => {
-    const processNames = dbProcesses && dbProcesses.length > 0
-      ? dbProcesses
-      : ['Wind', 'Gold', 'EOL', 'Pott', 'Load'];
+    const processNames = dbProcesses || [];
 
     const counts = {};
     processNames.forEach(p => {
@@ -3062,7 +3060,7 @@ export const DashboardOverview = ({
               <textarea
                 value={data.description || ''}
                 onChange={(e) => setData({ ...data, description: e.target.value })}
-                placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
+                placeholder="Describe the change — what, why, how, and expected outcome "
                 className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 focus:ring-[#0066cc]/10 focus:border-[#0066cc] transition-all duration-200 resize-none font-medium text-slate-700 h-[100px]"
               />
               <div className="flex justify-between items-center text-[9px] text-slate-400">
@@ -3273,7 +3271,19 @@ export const DashboardOverview = ({
                   onChange={(val) => setData({ ...data, date_start: convertDDMMYYYYToYYYYMMDD(val) })}
                   readOnly={true}
                   inputClassName="w-full pl-[12px] pr-[32px] py-[8px] border border-slate-200 bg-slate-50 rounded-[6px] text-[12px] font-medium text-slate-700 outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200"
-                  buttonClassName="right-[12px] top-[10px]"
+                />
+              </div>
+
+              {/* OPENING QUANTITY */}
+              <div className="space-y-[4px] relative">
+                <label className="block text-[10px] font-bold text-slate-655 uppercase tracking-wider">
+                  Opening Quantity
+                </label>
+                <input
+                  type="number"
+                  value={data.opening_quantity || ''}
+                  onChange={(e) => setData({ ...data, opening_quantity: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200 text-slate-700 font-medium"
                 />
               </div>
 
@@ -3286,7 +3296,7 @@ export const DashboardOverview = ({
                   value={data.trace_from || ''}
                   maxLength={1000}
                   onChange={(e) => setData({ ...data, trace_from: e.target.value })}
-                  placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
+                  placeholder="Describe the change — what, why, how, and expected outcome "
                   className="w-full bg-slate-50 border border-slate-200 rounded-[8px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 focus:ring-[#0066cc]/10 focus:border-[#0066cc] transition-all duration-200 resize-none font-medium text-slate-700 h-[80px]"
                 />
                 <div className="flex justify-between items-center text-[9px] text-slate-400">
@@ -3315,6 +3325,20 @@ export const DashboardOverview = ({
                 />
               </div>
 
+              {/* CLOSED QUANTITY */}
+              <div className="space-y-[4px] relative">
+                <label className="block text-[10px] font-bold text-slate-655 uppercase tracking-wider">
+                  Closed Quantity
+                </label>
+                <input
+                  type="number"
+                  value={data.closed_quantity || ''}
+                  disabled={data.change_type === 'Temporary' && (!data.date_close || data.date_close === 'N/A')}
+                  onChange={(e) => setData({ ...data, closed_quantity: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:border-[#0066cc] focus:ring-4 focus:ring-[#0066cc]/10 transition-all duration-200 text-slate-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
               {/* PART TRACEABILITY DETAILS (TO CHANGES) * */}
               <div className="space-y-[4px]">
                 <label className="block text-[10px] font-bold text-slate-655 uppercase tracking-wider">
@@ -3324,7 +3348,7 @@ export const DashboardOverview = ({
                   value={data.trace_to || ''}
                   maxLength={1000}
                   onChange={(e) => setData({ ...data, trace_to: e.target.value })}
-                  placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
+                  placeholder="Describe the change — what, why, how, and expected outcome "
                   className="w-full bg-slate-50 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 focus:ring-[#0066cc]/10 focus:border-[#0066cc] transition-all duration-200 resize-none font-medium text-slate-700 h-[80px]"
                 />
                 <div className="flex justify-between items-center text-[9px] text-slate-400">
@@ -3651,8 +3675,8 @@ export const DashboardOverview = ({
                       type="button"
                       disabled={true}
                       className={`flex items-center gap-[6px] px-[10px] py-[6px] border rounded-[6px] text-[10px] font-bold transition-all duration-200 cursor-not-allowed select-none ${isSelected
-                          ? 'border-[#0066cc]/60 bg-[#0066cc]/5 text-[#0066cc]/80 shadow-sm'
-                          : 'border-slate-100 bg-slate-50/50 text-slate-400'
+                        ? 'border-[#0066cc]/60 bg-[#0066cc]/5 text-[#0066cc]/80 shadow-sm'
+                        : 'border-slate-100 bg-slate-50/50 text-slate-400'
                         }`}
                     >
                       <span className={`w-[12px] h-[12px] rounded-full border flex items-center justify-center transition-all ${isSelected ? 'border-[#0066cc]/60' : 'border-slate-200'
@@ -4223,10 +4247,10 @@ export const DashboardOverview = ({
                       <td className="p-[16px] text-[12px] text-slate-500">{r.date}</td>
                       <td className="p-[16px]">
                         <span className={`inline-flex items-center gap-[4px] px-[10px] py-[2px] rounded-full text-[11px] font-semibold border ${r.status?.startsWith('Pending') ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                            r.status === 'Approved' || r.status === 'L3 Approved' ? 'bg-emerald-50 border-emerald-250 text-emerald-700' :
-                              r.status === 'Rejected' ? 'bg-rose-50 border-rose-250 text-rose-700' :
-                                r.status === 'Closed' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                                  'bg-teal-50 border-teal-200 text-teal-700'
+                          r.status === 'Approved' || r.status === 'L3 Approved' ? 'bg-emerald-50 border-emerald-250 text-emerald-700' :
+                            r.status === 'Rejected' ? 'bg-rose-50 border-rose-250 text-rose-700' :
+                              r.status === 'Closed' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                                'bg-teal-50 border-teal-200 text-teal-700'
                           }`}>
                           {r.status}
                         </span>
@@ -4280,8 +4304,8 @@ export const DashboardOverview = ({
                       <button
                         onClick={() => setIsEditMode(!isEditMode)}
                         className={`ml-3 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors border ${isEditMode
-                            ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                            : 'bg-[#0066cc] text-white border-[#0052a3] hover:bg-[#0052a3] shadow-[0_2px_6px_rgba(0,102,204,0.2)]'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                          : 'bg-[#0066cc] text-white border-[#0052a3] hover:bg-[#0052a3] shadow-[0_2px_6px_rgba(0,102,204,0.2)]'
                           }`}
                       >
                         {isEditMode ? 'Cancel Edit' : 'Edit Mode'}
@@ -4321,8 +4345,8 @@ export const DashboardOverview = ({
               <button
                 onClick={() => { setActiveTab('l1'); setIsEditMode(false); }}
                 className={`flex-1 h-full flex items-center justify-center text-[12px] font-bold border-b-2 transition-colors ${activeTab === 'l1'
-                    ? 'border-[#0066cc] text-[#0066cc]'
-                    : 'border-transparent text-slate-500 hover:text-slate-850'
+                  ? 'border-[#0066cc] text-[#0066cc]'
+                  : 'border-transparent text-slate-500 hover:text-slate-850'
                   }`}
               >
                 1. L1 Request Details
@@ -4331,8 +4355,8 @@ export const DashboardOverview = ({
                 <button
                   onClick={() => { setActiveTab('l2'); setIsEditMode(false); }}
                   className={`flex-1 h-full flex items-center justify-center text-[12px] font-bold border-b-2 transition-colors ${activeTab === 'l2'
-                      ? 'border-[#0066cc] text-[#0066cc]'
-                      : 'border-transparent text-slate-500 hover:text-slate-850'
+                    ? 'border-[#0066cc] text-[#0066cc]'
+                    : 'border-transparent text-slate-500 hover:text-slate-850'
                     }`}
                 >
                   2. L2 Validation Details
@@ -4342,8 +4366,8 @@ export const DashboardOverview = ({
                 <button
                   onClick={() => { setActiveTab('l3'); setIsEditMode(false); }}
                   className={`flex-1 h-full flex items-center justify-center text-[12px] font-bold border-b-2 transition-colors ${activeTab === 'l3'
-                      ? 'border-[#0066cc] text-[#0066cc]'
-                      : 'border-transparent text-slate-500 hover:text-slate-850'
+                    ? 'border-[#0066cc] text-[#0066cc]'
+                    : 'border-transparent text-slate-500 hover:text-slate-850'
                     }`}
                 >
                   3. L3 Approval Details
@@ -4353,12 +4377,12 @@ export const DashboardOverview = ({
                 <button
                   onClick={() => { setActiveTab('effectiveness'); setIsEditMode(false); }}
                   className={`flex-1 h-full flex items-center justify-center text-[12px] font-bold border-b-2 transition-colors ${activeTab === 'effectiveness'
-                      ? (selectedEffDetails && (selectedEffDetails.qaApproval === 'Rejected' || selectedEffDetails.status === 'Effectiveness Not Ok' || selectedEffDetails.status === 'Rejected'))
-                        ? 'border-rose-600 text-rose-600 font-extrabold bg-rose-50/30'
-                        : 'border-[#0066cc] text-[#0066cc]'
-                      : (selectedEffDetails && (selectedEffDetails.qaApproval === 'Rejected' || selectedEffDetails.status === 'Effectiveness Not Ok' || selectedEffDetails.status === 'Rejected'))
-                        ? 'border-transparent text-rose-650 hover:text-rose-800 bg-rose-50/10'
-                        : 'border-transparent text-slate-500 hover:text-slate-850'
+                    ? (selectedEffDetails && (selectedEffDetails.qaApproval === 'Rejected' || selectedEffDetails.status === 'Effectiveness Not Ok' || selectedEffDetails.status === 'Rejected'))
+                      ? 'border-rose-600 text-rose-600 font-extrabold bg-rose-50/30'
+                      : 'border-[#0066cc] text-[#0066cc]'
+                    : (selectedEffDetails && (selectedEffDetails.qaApproval === 'Rejected' || selectedEffDetails.status === 'Effectiveness Not Ok' || selectedEffDetails.status === 'Rejected'))
+                      ? 'border-transparent text-rose-650 hover:text-rose-800 bg-rose-50/10'
+                      : 'border-transparent text-slate-500 hover:text-slate-850'
                     }`}
                 >
                   {(selectedEffDetails && (selectedEffDetails.qaApproval === 'Rejected' || selectedEffDetails.status === 'Effectiveness Not Ok' || selectedEffDetails.status === 'Rejected')) && (
@@ -4405,10 +4429,10 @@ export const DashboardOverview = ({
                                 <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</span>
                                 <div className="flex gap-1.5 items-center mt-0.5">
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${selectedL1Details.hodStatus === 'Rejected'
-                                      ? 'bg-rose-50 border-rose-220 text-rose-700'
-                                      : (selectedL1Details.hodStatus === 'Approved' || selectedL1Details.crStatus !== 'Pending')
-                                        ? 'bg-emerald-50 border-emerald-220 text-emerald-700'
-                                        : 'bg-amber-50 border-amber-220 text-amber-700'
+                                    ? 'bg-rose-50 border-rose-220 text-rose-700'
+                                    : (selectedL1Details.hodStatus === 'Approved' || selectedL1Details.crStatus !== 'Pending')
+                                      ? 'bg-emerald-50 border-emerald-220 text-emerald-700'
+                                      : 'bg-amber-50 border-amber-220 text-amber-700'
                                     }`}>
                                     L1 {selectedL1Details.hodStatus === 'Rejected' ? 'Rejected' : ((selectedL1Details.hodStatus === 'Approved' || selectedL1Details.crStatus !== 'Pending') ? 'Approved' : 'Pending')}
                                   </span>
@@ -4519,6 +4543,11 @@ export const DashboardOverview = ({
                                 </div>
 
                                 <div className="space-y-[4px]">
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Opening Quantity</span>
+                                  <span className="font-semibold text-slate-800 text-xs block mt-0.5">{selectedL1Details.opening_quantity || '-'}</span>
+                                </div>
+
+                                <div className="space-y-[4px]">
                                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Part Traceability Details (From Changes)</span>
                                   <div className="bg-slate-50 border border-slate-200 rounded-[8px] p-3 text-slate-700 min-h-[60px] leading-relaxed break-words text-xs">
                                     {selectedL1Details.trace_from || '-'}
@@ -4540,6 +4569,11 @@ export const DashboardOverview = ({
                                     <Calendar size={13} className="text-slate-400" />
                                     {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : 'N/A'}
                                   </span>
+                                </div>
+
+                                <div className="space-y-[4px]">
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Closed Quantity</span>
+                                  <span className="font-semibold text-slate-800 text-xs block mt-0.5">{selectedL1Details.closed_quantity || '-'}</span>
                                 </div>
 
                                 <div className="space-y-[4px]">
@@ -4761,10 +4795,10 @@ export const DashboardOverview = ({
                             <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Validation Status</span>
                             <div>
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${selectedL2Details.status === 'Accepted'
-                                  ? 'bg-emerald-50 border-emerald-220 text-emerald-700'
-                                  : selectedL2Details.status === 'Rejected'
-                                    ? 'bg-rose-50 border-rose-220 text-rose-700'
-                                    : 'bg-amber-50 border-amber-220 text-amber-700'
+                                ? 'bg-emerald-50 border-emerald-220 text-emerald-700'
+                                : selectedL2Details.status === 'Rejected'
+                                  ? 'bg-rose-50 border-rose-220 text-rose-700'
+                                  : 'bg-amber-50 border-amber-220 text-amber-700'
                                 }`}>
                                 L2 {selectedL2Details.status === 'Accepted' ? 'Approved' : (selectedL2Details.status || 'Pending')}
                               </span>
@@ -4889,7 +4923,7 @@ export const DashboardOverview = ({
                             'Unit Head': selectedLog.unitHead || selectedLog.unit_head
                           };
                           const status = propMap[dept.label] || 'Pending';
-                          const isAccepted = status === 'Accepted' || status === 'Approved';
+                          const isAccepted = status === 'Accepted' || status === 'Approved' || status === 'Acknowledge';
                           const isRejected = status === 'Rejected';
                           const badgeClass = isAccepted
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -4956,10 +4990,10 @@ export const DashboardOverview = ({
                               <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">Effectiveness Status</span>
                               <div>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentEffLog.status === 'Effectiveness Ok'
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                    : currentEffLog.status === 'Pending'
-                                      ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                      : 'bg-rose-50 border-rose-255 text-rose-700'
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                  : currentEffLog.status === 'Pending'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-rose-50 border-rose-255 text-rose-700'
                                   }`}>
                                   {currentEffLog.status}
                                 </span>
@@ -4969,10 +5003,10 @@ export const DashboardOverview = ({
                               <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">QAD Approval</span>
                               <div>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentEffLog.qaApproval === 'Approved'
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                    : currentEffLog.qaApproval === 'Pending'
-                                      ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                      : 'bg-rose-50 border-rose-200 text-rose-700'
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                  : currentEffLog.qaApproval === 'Pending'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-rose-50 border-rose-200 text-rose-700'
                                   }`}>
                                   {currentEffLog.qaApproval}
                                 </span>
@@ -5289,7 +5323,7 @@ export const DashboardOverview = ({
                     <div className="space-y-4 flex-1">
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="font-bold text-xs uppercase tracking-wider text-slate-450">Nippon Quality Assurance</div>
+                          <div className="font-bold text-xs uppercase tracking-wider text-slate-450">India Nippon Electricals Limited</div>
                           <h3 className="font-extrabold text-base text-slate-900 mt-0.5">Change Request Attachment</h3>
                         </div>
                         <div className="text-[10px] text-slate-400 font-mono text-right">

@@ -1052,6 +1052,11 @@ export const AllApprovals = ({
                               </div>
 
                               <div className="space-y-[4px]">
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">Opening Quantity</span>
+                                <span className="font-semibold text-slate-800 text-xs block mt-0.5">{l1Details.opening_quantity || '-'}</span>
+                              </div>
+
+                              <div className="space-y-[4px]">
                                 <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">Part Traceability Details (From Changes)</span>
                                 <div className="bg-slate-50 border border-slate-200 rounded-[8px] p-3 text-slate-700 min-h-[60px] leading-relaxed break-words text-xs whitespace-pre-wrap">
                                   {l1Details.trace_from || '-'}
@@ -1072,6 +1077,11 @@ export const AllApprovals = ({
                                   <Calendar size={13} className="text-slate-400" />
                                   {l1Details.date_close ? formatDateToDDMMYYYY(l1Details.date_close) : 'N/A'}
                                 </span>
+                              </div>
+
+                              <div className="space-y-[4px]">
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans">Closed Quantity</span>
+                                <span className="font-semibold text-slate-800 text-xs block mt-0.5">{l1Details.closed_quantity || '-'}</span>
                               </div>
 
                               <div className="space-y-[4px]">
@@ -1463,7 +1473,7 @@ export const AllApprovals = ({
                             'Unit Head': selectedLog.unitHead || selectedLog.unit_head
                           };
                           const status = propMap[dept.label] || 'Pending';
-                          const isAccepted = status === 'Accepted' || status === 'Approved';
+                          const isAccepted = status === 'Accepted' || status === 'Approved' || status === 'Acknowledge';
                           const isRejected = status === 'Rejected';
                           const badgeClass = isAccepted
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-700'

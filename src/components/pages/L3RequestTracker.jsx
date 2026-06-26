@@ -647,6 +647,7 @@ export const L3RequestTracker = ({
               <option value="">Select Status</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
+              <option value="Acknowledge">Acknowledge</option>
             </select>
             {fieldErrors.status && (
               <p className="text-[11px] text-rose-500 flex items-center gap-1 mt-0.5">
@@ -812,11 +813,13 @@ export const L3RequestTracker = ({
                             { val: log.unitHead, type: 'unitHead' }
                           ].map((cell, cIdx) => {
                             const status = cell.val;
-                            const isAccepted = status === 'Accepted' || status === 'Approved';
+                            const isAccepted = status === 'Accepted' || status === 'Approved' || status === 'Acknowledge';
                             const isRejected = status === 'Rejected';
                             return (
-                              <td key={cIdx} className="p-[8px] text-center">
-                                <span className={`inline-block w-full text-center px-[4px] py-[2px] rounded-[4px] border text-[9px] font-bold ${isAccepted
+                              <td key={cIdx} className="py-[8px] px-[2px] text-center">
+                                <span className={`inline-block w-full text-center py-[2px] rounded-[4px] border font-bold ${
+                                  status === 'Acknowledge' ? 'text-[7.5px] px-[1px]' : 'text-[9px] px-[4px]'
+                                } ${isAccepted
                                     ? 'bg-emerald-50 border-emerald-250 text-emerald-700'
                                     : isRejected
                                       ? 'bg-rose-50 border-rose-250 text-rose-700'
@@ -894,7 +897,7 @@ export const L3RequestTracker = ({
                           { label: 'Unit Head', val: log.unitHead }
                         ].map((dept, dIdx) => {
                           const status = dept.val || 'Pending';
-                          const isAccepted = status === 'Accepted' || status === 'Approved';
+                          const isAccepted = status === 'Accepted' || status === 'Approved' || status === 'Acknowledge';
                           const isRejected = status === 'Rejected';
                           return (
                             <div key={dIdx} className="flex justify-between items-center bg-slate-50 border border-slate-100 rounded px-2 py-1 text-[10px]">
@@ -1184,6 +1187,11 @@ export const L3RequestTracker = ({
                             </div>
 
                             <div className="space-y-[4px]">
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Opening Quantity</span>
+                              <span className="font-semibold text-slate-800 text-xs block mt-0.5">{selectedL1Details.opening_quantity || '-'}</span>
+                            </div>
+
+                            <div className="space-y-[4px]">
                               <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Part Traceability Details (From Changes)</span>
                               <div className="bg-slate-50 border border-slate-200 rounded-[8px] p-3 text-slate-700 min-h-[60px] leading-relaxed break-words text-xs">
                                 {selectedL1Details.trace_from || '-'}
@@ -1204,6 +1212,11 @@ export const L3RequestTracker = ({
                                 <Calendar size={13} className="text-slate-400" />
                                 {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : 'N/A'}
                               </span>
+                            </div>
+
+                            <div className="space-y-[4px]">
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Closed Quantity</span>
+                              <span className="font-semibold text-slate-800 text-xs block mt-0.5">{selectedL1Details.closed_quantity || '-'}</span>
                             </div>
 
                             <div className="space-y-[4px]">
@@ -1523,7 +1536,7 @@ export const L3RequestTracker = ({
                           { label: 'Unit Head', prop: 'unitHead' }
                         ].map((dept, index) => {
                           const status = selectedLog[dept.prop] || 'Pending';
-                          const isAccepted = status === 'Accepted' || status === 'Approved';
+                          const isAccepted = status === 'Accepted' || status === 'Approved' || status === 'Acknowledge';
                           const isRejected = status === 'Rejected';
                           const badgeClass = isAccepted
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -1813,7 +1826,7 @@ export const L3RequestTracker = ({
                     <div className="space-y-4 flex-1">
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="font-bold text-xs uppercase tracking-wider text-slate-400">Nippon Quality Assurance</div>
+                          <div className="font-bold text-xs uppercase tracking-wider text-slate-400">India Nippon Electricals Limited</div>
                           <h3 className="font-extrabold text-base text-slate-900 mt-0.5">Change Request Attachment</h3>
                         </div>
                         <div className="text-[10px] text-slate-400 font-mono text-right">

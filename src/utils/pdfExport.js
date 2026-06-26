@@ -12,10 +12,13 @@ const drawFooter = (doc, pageText, confidentialText) => {
   // Confidentiality and Page text in previous slate color
   doc.setTextColor(148, 163, 184);
   
+  // Replace Nippon Quality Assurance with India Nippon Electricals Limited
+  const updatedConfidential = confidentialText ? confidentialText.replace('NIPPON QUALITY ASSURANCE', 'INDIA NIPPON ELECTRICALS LIMITED') : '';
+  
   // 2nd: Confidential text centered in the middle
-  const confidentialWidth = doc.getTextWidth(confidentialText);
+  const confidentialWidth = doc.getTextWidth(updatedConfidential);
   const centerX = (doc.internal.pageSize.width - confidentialWidth) / 2;
-  doc.text(confidentialText, centerX, doc.internal.pageSize.height - 20);
+  doc.text(updatedConfidential, centerX, doc.internal.pageSize.height - 20);
   
   // 3rd: Page text on the right (x = width - 80)
   doc.text(pageText, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
@@ -416,6 +419,10 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
           selectedL1Details.date_start ? formatDateToDDMMYYYY(selectedL1Details.date_start) : '-'
         ],
         [
+          { content: 'Opening Quantity', fontStyle: 'bold' },
+          selectedL1Details.opening_quantity || '-'
+        ],
+        [
           { content: 'Part Traceability Details (From Changes)', fontStyle: 'bold' },
           selectedL1Details.trace_from || '-'
         ]
@@ -432,6 +439,10 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
         [
           { content: 'Change Date Close', fontStyle: 'bold' },
           selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : 'N/A'
+        ],
+        [
+          { content: 'Closed Quantity', fontStyle: 'bold' },
+          selectedL1Details.closed_quantity || '-'
         ],
         [
           { content: 'Part Traceability Details (To Changes)', fontStyle: 'bold' },
@@ -1820,9 +1831,7 @@ export const exportProcessAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
     addLogoToDoc(doc);
 
     // Calculate process counts
-    const processNames = dbProcesses && dbProcesses.length > 0
-      ? dbProcesses
-      : ['Wind', 'Gold', 'EOL', 'Pott', 'Load'];
+    const processNames = dbProcesses || [];
 
     const counts = {};
     processNames.forEach(p => {
