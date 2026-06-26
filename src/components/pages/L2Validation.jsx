@@ -15,7 +15,9 @@ export const L2Validation = ({
   fetchChanges,
   fetchNotifications,
   autoOpenChangeNo,
-  clearAutoOpen
+  clearAutoOpen,
+  systemUsers = [],
+  userName = ''
 }) => {
   // Modal states
   const [validationError, setValidationError] = useState('');
@@ -138,35 +140,40 @@ export const L2Validation = ({
     setQaFiles([]);
 
     if (formChangeNo) {
-      // Sync date/requester from changes list
       const matchedChange = changes?.find(c => c.id.toLowerCase().trim() === formChangeNo.toLowerCase().trim());
       if (matchedChange) {
         setFormDate(formatDateToDDMMYYYY(matchedChange.date));
-        setFormRequester(matchedChange.requestBy || matchedChange.requester || '');
       }
-      // Sync status/remarks from saved log
+      
       const savedLog = validationLogs.find(
         log => log.changeNo?.toLowerCase().trim() === formChangeNo.toLowerCase().trim()
       );
+      
       if (savedLog) {
         setFormStatus(savedLog.status || '');
         setFormRemarks(savedLog.remarks === '-' ? '' : savedLog.remarks || '');
+        if (savedLog.requester && savedLog.status !== 'Rejected') {
+          setFormRequester(savedLog.requester);
+        } else {
+          setFormRequester(userName || userEmail || '');
+        }
         setExistingPedFiles(savedLog.weldTest && savedLog.weldTest !== '-' ? savedLog.weldTest.split(',').map(s => s.trim()).filter(Boolean) : []);
         setExistingQaFiles(savedLog.qaTest && savedLog.qaTest !== '-' ? savedLog.qaTest.split(',').map(s => s.trim()).filter(Boolean) : []);
       } else {
         setFormStatus('');
         setFormRemarks('');
+        setFormRequester(userName || userEmail || '');
         setExistingPedFiles([]);
         setExistingQaFiles([]);
       }
     } else {
       setFormStatus('');
       setFormRemarks('');
+      setFormRequester('');
       setExistingPedFiles([]);
       setExistingQaFiles([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formChangeNo, validationLogs]);
+  }, [formChangeNo, validationLogs, changes, userName, userEmail]);
 
   const handleSaveLog = async (e) => {
     e.preventDefault();
@@ -194,7 +201,11 @@ export const L2Validation = ({
       }
     }
 
-    if (!formDate.trim() || !formRequester.trim()) {
+    if (!formRequester.trim()) {
+      errors.requester = 'Please select a validator.';
+    }
+
+    if (!formDate.trim()) {
       setValidationError('Change request data is missing. Please select a valid row from the table.');
       return;
     }
@@ -384,16 +395,25 @@ export const L2Validation = ({
     const files = filename.split(',').map(s => s.trim()).filter(Boolean);
     return (
       <div className="mt-1 flex flex-wrap gap-2">
-        {files.map((file, idx) => (
-          <span
-            key={idx}
-            className="inline-flex items-center gap-[6px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md py-1 px-2.5 text-[11px] font-medium text-[#0066cc] cursor-pointer max-w-full"
-            onClick={() => handleViewAttachment(file, changeNo)}
-          >
-            <Paperclip size={11} className="text-slate-400" />
-            <span className="underline truncate max-w-[200px]">{file}</span>
-          </span>
-        ))}
+        {files.map((file, idx) => {
+          if (file.toLowerCase() === 'n/a') {
+            return (
+              <span key={idx} className="text-[12px] font-semibold text-slate-500 mt-1">
+                {file}
+              </span>
+            );
+          }
+          return (
+            <span
+              key={idx}
+              className="inline-flex items-center gap-[6px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md py-1 px-2.5 text-[11px] font-medium text-[#0066cc] cursor-pointer max-w-full"
+              onClick={() => handleViewAttachment(file, changeNo)}
+            >
+              <Paperclip size={11} className="text-slate-400" />
+              <span className="underline truncate max-w-[200px]">{file}</span>
+            </span>
+          );
+        })}
       </div>
     );
   };
@@ -409,6 +429,11 @@ export const L2Validation = ({
   const isRaisedByUser = matchedChange && userEmail &&
     matchedChange.requesterEmail?.toLowerCase().trim() === userEmail.toLowerCase().trim();
 
+  const isSameDeptUser = matchedChange && userDept &&
+    matchedChange.dept?.toLowerCase().trim() === userDept.toLowerCase().trim();
+
+  const isRequesterOrDeptMember = isRaisedByUser || isSameDeptUser;
+
   const isAdmin = userRole && (
     userRole.toLowerCase() === 'admin' ||
     userRole.toLowerCase() === 'administrator'
@@ -419,9 +444,9 @@ export const L2Validation = ({
   );
 
   const isQualityOrAdmin = isQuality || isAdmin;
-  const isRaisedByUserOrAdmin = isRaisedByUser || isAdmin;
+  const isRaisedByUserOrAdmin = isRequesterOrDeptMember || isAdmin;
 
-  const canEdit = isQualityOrAdmin || isRaisedByUser;
+  const canEdit = isQualityOrAdmin || isRequesterOrDeptMember;
 
   const matchedL2 = validationLogs.find(
     log => log.changeNo?.toLowerCase().trim() === formChangeNo.toLowerCase().trim()
@@ -441,8 +466,8 @@ export const L2Validation = ({
     // If Rejected, locked for Quality/Admin, and locked for requester unless they selected a new file to reset
     (matchedL2 && matchedL2.status === 'Rejected' && !(isRaisedByUserOrAdmin && pedFiles.length > 0)) ||
     // If Pending, locked for standard requester since they already uploaded the PED file
-    (matchedL2 && matchedL2.status === 'Pending' && isRaisedByUser && !isQualityOrAdmin && hasPedUploaded)
-  ))) || (isQuality && !isAdmin && !isRaisedByUser && !hasPedUploaded);
+    (matchedL2 && matchedL2.status === 'Pending' && isRequesterOrDeptMember && !isQualityOrAdmin && hasPedUploaded)
+  ))) || (isQuality && !isAdmin && !isRequesterOrDeptMember && !hasPedUploaded);
 
   // Filter logic
   const filteredLogs = tableLogs.filter(log => {
@@ -474,6 +499,8 @@ export const L2Validation = ({
     exportL2ValidationLogsPDF(filteredLogs, { searchQuery, decisionFilter }, setToastMsg);
   };
 
+
+
   return (
     <div className="space-y-6 min-w-0 animate-fade-in-up">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px] text-slate-800 items-start">
@@ -495,11 +522,11 @@ export const L2Validation = ({
             </div>
           ) : (
             <>
-              {formChangeNo && isRaisedByUser && !isQualityOrAdmin && (
+              {formChangeNo && isRequesterOrDeptMember && !isQualityOrAdmin && (
                 <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
                   <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Notice:</span> You raised this change request. You are authorized to upload the <span className="font-semibold">Requester Validation Attachment</span>. QAD department will review and complete the validation.
+                    <span className="font-bold">Notice:</span> You raised this change request or belong to the same department. You are authorized to upload the <span className="font-semibold">Requester Validation Attachment</span>. QAD department will review and complete the validation.
                   </div>
                 </div>
               )}
@@ -513,7 +540,7 @@ export const L2Validation = ({
                 </div>
               )}
 
-              {formChangeNo && !isRaisedByUser && isQualityOrAdmin && !isL2AlreadyValidated && hasPedUploaded && (
+              {formChangeNo && !isRequesterOrDeptMember && isQualityOrAdmin && !isL2AlreadyValidated && hasPedUploaded && (
                 <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
                   <AlertTriangle size={14} className="text-blue-500 shrink-0 mt-0.5" />
                   <div>
@@ -522,11 +549,11 @@ export const L2Validation = ({
                 </div>
               )}
 
-              {formChangeNo && isRaisedByUser && isQualityOrAdmin && !isL2AlreadyValidated && (
+              {formChangeNo && isRequesterOrDeptMember && isQualityOrAdmin && !isL2AlreadyValidated && (
                 <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
-                  <AlertTriangle size={14} className="text-blue-505 shrink-0 mt-0.5" />
+                  <AlertTriangle size={14} className="text-blue-550 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Notice:</span> You are the creator of this change request and {isAdmin ? 'an Admin' : 'a QAD'} member. {!hasPedUploaded ? 'Please upload the Requester Validation Attachment first. After saving, you will be authorized to update the remaining L2 validation fields.' : 'You have full permissions to update all L2 validation fields.'}
+                    <span className="font-bold">Notice:</span> You are the creator or department member of this change request and {isAdmin ? 'an Admin' : 'a QAD'} member. {!hasPedUploaded ? 'Please upload the Requester Validation Attachment first. After saving, you will be authorized to update the remaining L2 validation fields.' : 'You have full permissions to update all L2 validation fields.'}
                   </div>
                 </div>
               )}
@@ -549,7 +576,7 @@ export const L2Validation = ({
                 </div>
               )}
 
-              {formChangeNo && isRaisedByUser && matchedL2 && matchedL2.status === 'Accepted' && (
+              {formChangeNo && isRequesterOrDeptMember && matchedL2 && matchedL2.status === 'Accepted' && (
                 <div className="bg-emerald-50 border border-emerald-250 text-emerald-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
                   <AlertTriangle size={14} className="text-emerald-500 shrink-0 mt-0.5" />
                   <div>
@@ -558,7 +585,7 @@ export const L2Validation = ({
                 </div>
               )}
 
-              {formChangeNo && isRaisedByUser && matchedL2 && matchedL2.status === 'Rejected' && (
+              {formChangeNo && isRequesterOrDeptMember && matchedL2 && matchedL2.status === 'Rejected' && (
                 <div className="bg-rose-50 border border-rose-250 text-rose-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
                   <AlertTriangle size={14} className="text-rose-505 shrink-0 mt-0.5" />
                   <div>
@@ -567,11 +594,11 @@ export const L2Validation = ({
                 </div>
               )}
 
-              {formChangeNo && !isRaisedByUser && !isQualityOrAdmin && (
+              {formChangeNo && !isRequesterOrDeptMember && !isQualityOrAdmin && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-lg p-3 text-[11px] flex items-start gap-2 animate-fade-in mb-3">
                   <AlertTriangle size={14} className="text-rose-500 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Access Restricted:</span> L2 validation can only be submitted by the person who raised this change request or QAD department members / Admins.
+                    <span className="font-bold">Access Restricted:</span> L2 validation can only be submitted by the person who raised this change request, department members, or QAD department members / Admins.
                   </div>
                 </div>
               )}
@@ -608,11 +635,17 @@ export const L2Validation = ({
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Request By <span className="text-rose-500">*</span></label>
               <input
                 type="text"
-                placeholder="Click a row on the right to select"
+                placeholder={formChangeNo.trim() ? "Logged-in user name" : "Click a row on the right to select"}
                 value={formRequester}
                 disabled
-                className="w-full bg-slate-100 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none text-slate-550 select-none"
+                className="w-full bg-slate-100 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none text-slate-550 select-none cursor-not-allowed"
               />
+              {fieldErrors.requester && (
+                <p className="text-[11px] text-rose-500 flex items-center gap-1 mt-0.5">
+                  <span className="inline-block w-[3px] h-[3px] rounded-full bg-rose-500 mt-[1px]" />
+                  {fieldErrors.requester}
+                </p>
+              )}
             </div>
 
             {/* REQUESTER VALIDATION ATTACHMENT */}
@@ -1539,7 +1572,7 @@ export const L2Validation = ({
                           <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Date Close</span>
                           <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5">
                             <Calendar size={13} className="text-slate-400" />
-                            {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : '-'}
+                            {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : 'N/A'}
                           </span>
                         </div>
 
@@ -1694,12 +1727,15 @@ export const L2Validation = ({
                           </span>
                         </div>
                       ) : (
-                        <span className="text-[12px] text-slate-400 italic">No department selected</span>
+                          <span className="text-[12px] text-slate-400 italic">No department selected</span>
                       )}
                     </div>
 
                     <div className="space-y-[4px]">
-                      <span className="font-semibold text-slate-755 flex items-center gap-1.5 mt-0.5 text-[12px]">
+                      {showCustomerApproval && (
+                        <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Approval Required</span>
+                      )}
+                      <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5 text-[12px]">
                         <span>{showCustomerApproval ? (selectedL1Details.customer_approval || '-') : '••••'}</span>
                         <button
                           type="button"

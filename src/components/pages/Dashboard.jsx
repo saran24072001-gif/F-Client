@@ -567,6 +567,8 @@ export const Dashboard = ({ userEmail, userRole, userName, onSignOut }) => {
                 fetchNotifications={fetchNotifications}
                 autoOpenChangeNo={autoOpenChangeNo}
                 clearAutoOpen={() => setAutoOpenChangeNo(null)}
+                systemUsers={usersList}
+                userName={userName}
               />
             )}
 

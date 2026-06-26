@@ -230,16 +230,25 @@ export const Effectiveness = ({
     const files = filename.split(',').map(s => s.trim()).filter(Boolean);
     return (
       <div className="mt-1 flex flex-wrap gap-2">
-        {files.map((file, idx) => (
-          <span
-            key={idx}
-            className="inline-flex items-center gap-[6px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md py-1 px-2.5 text-[11px] font-medium text-[#0066cc] cursor-pointer max-w-full"
-            onClick={() => handleViewAttachment(file, changeNo, 'L1')}
-          >
-            <Paperclip size={11} className="text-slate-400" />
-            <span className="underline truncate max-w-[200px]">{file}</span>
-          </span>
-        ))}
+        {files.map((file, idx) => {
+          if (file.toLowerCase() === 'n/a') {
+            return (
+              <span key={idx} className="text-[12px] font-semibold text-slate-500 mt-1">
+                {file}
+              </span>
+            );
+          }
+          return (
+            <span
+              key={idx}
+              className="inline-flex items-center gap-[6px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md py-1 px-2.5 text-[11px] font-medium text-[#0066cc] cursor-pointer max-w-full"
+              onClick={() => handleViewAttachment(file, changeNo, 'L1')}
+            >
+              <Paperclip size={11} className="text-slate-400" />
+              <span className="underline truncate max-w-[200px]">{file}</span>
+            </span>
+          );
+        })}
       </div>
     );
   };
@@ -1573,7 +1582,7 @@ export const Effectiveness = ({
                               <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Date Close</span>
                               <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5">
                                 <Calendar size={13} className="text-slate-400" />
-                                {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : '-'}
+                                {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : 'N/A'}
                               </span>
                             </div>
 
@@ -1733,6 +1742,9 @@ export const Effectiveness = ({
                         </div>
 
                         <div className="space-y-[4px]">
+                          {showCustomerApproval && (
+                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Approval Required</span>
+                          )}
                           <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5 text-[12px]">
                             <span>{showCustomerApproval ? (selectedL1Details.customer_approval || '-') : '••••'}</span>
                             <button

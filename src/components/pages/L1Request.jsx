@@ -714,9 +714,9 @@ export const L1Request = ({
       newErrors.traceFrom = 'Part Traceability Details (From) is required.';
     }
 
-    if (!dateClose || !dateClose.trim()) {
+    if (!dateClose || (!dateClose.trim() && dateClose !== 'N/A')) {
       newErrors.dateClose = 'Please enter a Change Close Date .';
-    } else {
+    } else if (dateClose !== 'N/A') {
       const parsedDateStart = parseDDMMYYYYToDate(dateStart);
       const parsedDateClose = parseDDMMYYYYToDate(dateClose);
       if (!parsedDateClose) {
@@ -730,7 +730,7 @@ export const L1Request = ({
       }
     }
 
-    if (!traceTo || !traceTo.trim()) {
+    if (!traceTo || (!traceTo.trim() && traceTo !== 'N/A')) {
       newErrors.traceTo = 'Part Traceability (To) is required.';
     }
 
@@ -852,11 +852,20 @@ export const L1Request = ({
     }
   };
 
-  const renderAttachmentInput = (label, value, setValue, inputId, fieldName, isRequired = false) => {
+  const renderAttachmentInput = (label, value, setValue, inputId, fieldName, isRequired = false, rightElement = null) => {
     const hasError = errors[fieldName];
     return (
       <div className="space-y-[4px]" id={fieldName}>
-        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label} {isRequired && <span className="text-rose-500">*</span>}</label>
+        <div className="flex justify-between items-center">
+          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label} {isRequired && <span className="text-rose-500">*</span>}</label>
+          {rightElement}
+        </div>
+        {value === 'N/A' ? (
+          <div className="w-full max-w-[400px] bg-slate-100 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] text-slate-500 cursor-not-allowed">
+            Not Applicable
+          </div>
+        ) : (
+        <>
         <div className="flex gap-[8px] max-w-[400px]">
           <div className="relative flex-1">
             <input
@@ -982,7 +991,9 @@ export const L1Request = ({
             ))}
           </div>
         )}
-        {hasError && <span className="text-rose-500 text-[10px] block mt-[2px]">{hasError}</span>}
+        </>
+        )}
+        {hasError && value !== 'N/A' && <span className="text-rose-500 text-[10px] block mt-[2px]">{hasError}</span>}
       </div>
     );
   };
@@ -1438,7 +1449,13 @@ export const L1Request = ({
                 id="changeType"
                 value={changeType}
                 onChange={(e) => {
-                  setChangeType(e.target.value);
+                  const val = e.target.value;
+                  setChangeType(val);
+                  if (val === 'Temporary') {
+                    if (dateClose === 'N/A') setDateClose('');
+                    if (traceTo === 'N/A') setTraceTo('');
+                    if (fileTraceTo === 'N/A') setFileTraceTo('');
+                  }
                   if (errors.changeType) setErrors(prev => ({ ...prev, changeType: '' }));
                 }}
                 className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
@@ -1515,61 +1532,133 @@ export const L1Request = ({
 
             {/* CHANGE DATE CLOSE */}
             <div className="space-y-[4px]">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Close Date  <span className="text-rose-500">*</span></label>
-              <CustomDatePicker
-                id="dateClose"
-                value={dateClose}
-                onChange={(val) => {
-                  setDateClose(val);
-                  if (errors.dateClose) setErrors(prev => ({ ...prev, dateClose: '' }));
-                }}
-                readOnly={true}
-                minDate={dateStart || requestedDate}
-                containerClassName=""
-                inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
-                  errors.dateClose 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
-                    : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
-                buttonClassName="right-[10px] top-[50%] -translate-y-1/2"
-              />
-              {errors.dateClose && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.dateClose}</span>}
+              <div className="flex justify-between items-center">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Close Date  <span className="text-rose-500">*</span></label>
+                {changeType === 'Permanent' && (
+                  <select
+                    value={dateClose === 'N/A' ? 'N/A' : 'Required'}
+                    onChange={(e) => {
+                      const isNA = e.target.value === 'N/A';
+                      setDateClose(isNA ? 'N/A' : '');
+                      if (errors.dateClose) setErrors(prev => ({ ...prev, dateClose: '' }));
+                    }}
+                    className="text-[10px] bg-slate-50 border border-slate-200 rounded px-1 py-0.5 outline-none cursor-pointer text-slate-600 focus:border-[#0066cc]"
+                  >
+                    <option value="Required">Required</option>
+                    <option value="N/A">N/A</option>
+                  </select>
+                )}
+              </div>
+              {dateClose === 'N/A' ? (
+                <div className="w-full bg-slate-100 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] text-slate-500 cursor-not-allowed">
+                  Not Applicable
+                </div>
+              ) : (
+                <CustomDatePicker
+                  id="dateClose"
+                  value={dateClose}
+                  onChange={(val) => {
+                    setDateClose(val);
+                    if (errors.dateClose) setErrors(prev => ({ ...prev, dateClose: '' }));
+                  }}
+                  readOnly={true}
+                  minDate={dateStart || requestedDate}
+                  containerClassName=""
+                  inputClassName={`w-full bg-slate-50 border rounded-[6px] py-[8px] pl-[12px] pr-[28px] text-[12px] outline-none focus:ring-4 transition-all duration-200 ${
+                    errors.dateClose 
+                      ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                      : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
+                  }`}
+                  buttonClassName="right-[10px] top-[50%] -translate-y-1/2"
+                />
+              )}
+              {errors.dateClose && dateClose !== 'N/A' && <span className="text-rose-500 text-[10px] block mt-[2px]">{errors.dateClose}</span>}
             </div>
 
             {/* PART TRACEABILITY DETAILS (TO CHANGES) */}
             <div className="space-y-[4px]">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Part Traceability Details (To Changes) <span className="text-rose-500">*</span></label>
-              <textarea
-                id="traceTo"
-                placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
-                value={traceTo}
-                maxLength={1000}
-                onChange={(e) => {
-                  setTraceTo(e.target.value);
-                  if (errors.traceTo) setErrors(prev => ({ ...prev, traceTo: '' }));
-                }}
-                rows={3}
-                className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
-                  errors.traceTo 
-                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
-                    : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
-                }`}
-              />
-              <div className="flex justify-between items-center text-[9px] text-slate-400">
-                {errors.traceTo ? (
-                  <span className="text-rose-500 font-bold">{errors.traceTo}</span>
-                ) : (
-                  <span>Traceability detail for proposed setup</span>
+              <div className="flex justify-between items-center">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Part Traceability Details (To Changes) <span className="text-rose-500">*</span></label>
+                {changeType === 'Permanent' && (
+                  <select
+                    value={traceTo === 'N/A' ? 'N/A' : 'Required'}
+                    onChange={(e) => {
+                      const isNA = e.target.value === 'N/A';
+                      setTraceTo(isNA ? 'N/A' : '');
+                      if (errors.traceTo) setErrors(prev => ({ ...prev, traceTo: '' }));
+                    }}
+                    className="text-[10px] bg-slate-50 border border-slate-200 rounded px-1 py-0.5 outline-none cursor-pointer text-slate-600 focus:border-[#0066cc]"
+                  >
+                    <option value="Required">Required</option>
+                    <option value="N/A">N/A</option>
+                  </select>
                 )}
-                <span className={`${1000 - traceTo.length <= 15 ? 'text-amber-600 font-bold animate-pulse' : 'text-slate-400'}`}>
-                  {1000 - traceTo.length} characters remaining (max 1000 chars)
-                </span>
               </div>
+              {traceTo === 'N/A' ? (
+                <div className="w-full bg-slate-100 border border-slate-200 rounded-[6px] py-[8px] px-[12px] text-[12px] text-slate-500 cursor-not-allowed">
+                  Not Applicable
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    id="traceTo"
+                    placeholder="Describe the change — what, why, how, and expected outcome (min 20 characters)..."
+                    value={traceTo}
+                    maxLength={1000}
+                    onChange={(e) => {
+                      setTraceTo(e.target.value);
+                      if (errors.traceTo) setErrors(prev => ({ ...prev, traceTo: '' }));
+                    }}
+                    rows={3}
+                    className={`w-full bg-slate-50 border rounded-[6px] py-[8px] px-[12px] text-[12px] outline-none focus:ring-4 transition-all duration-200 resize-none ${
+                      errors.traceTo 
+                        ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/10' 
+                        : 'border-slate-200 focus:border-[#0066cc] focus:ring-[#0066cc]/10'
+                    }`}
+                  />
+                  <div className="flex justify-between items-center text-[9px] text-slate-400 mt-1">
+                    {errors.traceTo ? (
+                      <span className="text-rose-500 font-bold">{errors.traceTo}</span>
+                    ) : (
+                      <span>Traceability detail for proposed setup</span>
+                    )}
+                    <span className={`${1000 - traceTo.length <= 15 ? 'text-amber-600 font-bold animate-pulse' : 'text-slate-400'}`}>
+                      {1000 - traceTo.length} characters remaining (max 1000 chars)
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* UPLOAD SUPPORTING FILES */}
             <div className="space-y-[4px]">
-              {renderAttachmentInput("Upload Supporting Files", fileTraceTo, setFileTraceTo, "file-traceto-input", "fileTraceTo", true)}
+              {renderAttachmentInput(
+                "Upload Supporting Files", 
+                fileTraceTo, 
+                setFileTraceTo, 
+                "file-traceto-input", 
+                "fileTraceTo", 
+                true,
+                changeType === 'Permanent' ? (
+                  <select
+                    value={fileTraceTo === 'N/A' ? 'N/A' : 'Required'}
+                    onChange={(e) => {
+                      const isNA = e.target.value === 'N/A';
+                      if (isNA) {
+                        setFileTraceTo('N/A');
+                        setUploadedFilesList(prev => prev.filter(f => f.fieldName !== 'fileTraceTo'));
+                      } else {
+                        setFileTraceTo('');
+                      }
+                      if (errors.fileTraceTo) setErrors(prev => ({ ...prev, fileTraceTo: '' }));
+                    }}
+                    className="text-[10px] bg-slate-50 border border-slate-200 rounded px-1 py-0.5 outline-none cursor-pointer text-slate-600 focus:border-[#0066cc]"
+                  >
+                    <option value="Required">Required</option>
+                    <option value="N/A">N/A</option>
+                  </select>
+                ) : null
+              )}
             </div>
           </div>
         </div>
@@ -1720,27 +1809,35 @@ export const L1Request = ({
           </div>
         </div>
 
-        {/* Centered Submit Button */}
-        <div className="flex flex-col items-center justify-center pt-[16px] gap-2">
-          <button
-            type="submit"
-            disabled={isSubmitting || isAdmin}
-            className="flex items-center justify-center gap-[8px] bg-[#0066cc] hover:bg-[#0052a3] disabled:opacity-60 disabled:cursor-not-allowed text-white px-[32px] py-[12px] rounded-[6px] text-[13px] font-bold shadow-md transition-all transform active:scale-[0.98] cursor-pointer"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="animate-spin" size={16} />
-                <span>Submitting...</span>
-              </>
-            ) : (
-              <span>Submit</span>
+        {/* Footer Area with Centered Submit Button and Left-aligned Doc No */}
+        <div className="flex flex-col sm:flex-row items-center justify-between pt-[24px] gap-4 w-full">
+          <div className="text-[11px] font-bold text-black-400 sm:flex-1 text-left w-full sm:w-auto mt-auto mb-2 sm:mb-0">
+            DOC NO : PRD/FR/156 R1
+          </div>
+          
+          <div className="flex flex-col items-center justify-center gap-2 sm:flex-1">
+            <button
+              type="submit"
+              disabled={isSubmitting || isAdmin}
+              className="flex items-center justify-center gap-[8px] bg-[#0066cc] hover:bg-[#0052a3] disabled:opacity-60 disabled:cursor-not-allowed text-white px-[32px] py-[12px] rounded-[6px] text-[13px] font-bold shadow-md transition-all transform active:scale-[0.98] cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin" size={16} />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <span>Submit</span>
+              )}
+            </button>
+            {isAdmin && (
+              <span className="text-[11px] text-rose-500 font-semibold whitespace-nowrap text-center">
+                Admin is not allowed to submit L1 request
+              </span>
             )}
-          </button>
-          {isAdmin && (
-            <span className="text-[11px] text-rose-500 font-semibold">
-              Admin is not allowed to submit L1 request
-            </span>
-          )}
+          </div>
+
+          <div className="hidden sm:block sm:flex-1"></div>
         </div>
       </form>
 

@@ -5,6 +5,28 @@ import { getRequestDisplayStatus } from './statusUtils';
 import { getSyncedDate } from './timeSync';
 import nipponLogoUrl from '../assets/Nippon Logo.png';
 
+const drawFooter = (doc, pageText, confidentialText) => {
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  
+  // Confidentiality and Page text in previous slate color
+  doc.setTextColor(148, 163, 184);
+  
+  // 2nd: Confidential text centered in the middle
+  const confidentialWidth = doc.getTextWidth(confidentialText);
+  const centerX = (doc.internal.pageSize.width - confidentialWidth) / 2;
+  doc.text(confidentialText, centerX, doc.internal.pageSize.height - 20);
+  
+  // 3rd: Page text on the right (x = width - 80)
+  doc.text(pageText, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
+  
+  // DOC NO specifically in black color
+  doc.setTextColor(0, 0, 0);
+  
+  // 1st: DOC NO on the left (x = 40)
+  doc.text('DOC NO: PRD/FR/156 R1', 40, doc.internal.pageSize.height - 20);
+};
+
 // Premium Theme Colors
 const PRIMARY_COLOR = [30, 58, 138]; // Deep Royal Navy #1e3a8a
 const SECONDARY_COLOR = [71, 85, 105]; // Cool Slate #475569
@@ -169,10 +191,7 @@ export const exportRequestsListPDF = (filteredData, filtersInfo = {}, setToastMs
       didDrawPage: (data) => {
         // Footer
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184); // Slate-400
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL CHANGE REQUESTS', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL CHANGE REQUESTS');
       },
       didParseCell: (data) => {
         applyCellStatusColors(data, 7, 10);
@@ -412,7 +431,7 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
       detailsData.push(
         [
           { content: 'Change Date Close', fontStyle: 'bold' },
-          selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : '-'
+          selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : 'N/A'
         ],
         [
           { content: 'Part Traceability Details (To Changes)', fontStyle: 'bold' },
@@ -497,7 +516,7 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
     }
 
     // Section 3: Level 2 Validation Details (aligned with L2 modal tab fields)
-    if (targetTab === 'l2' || targetTab === 'all') {
+    if (targetTab === 'l2' || targetTab === 'l3' || targetTab === 'all') {
       const l2Data = [];
       if (selectedL2Details) {
         const l2Status = selectedL2Details.status === 'Accepted'
@@ -684,10 +703,7 @@ export const exportRequestDetailsPDF = (selectedL1Details, selectedL2Details, se
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184); // Slate-400
-      doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-      doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL CHANGE REQUEST REPORT', 40, doc.internal.pageSize.height - 20);
+      drawFooter(doc, `Page ${i} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL CHANGE REQUEST REPORT');
     }
 
     doc.save(`${docFilename}.pdf`);
@@ -796,10 +812,7 @@ export const exportL2ValidationLogsPDF = (filteredLogs, filtersInfo = {}, setToa
       margin: { top: 40, bottom: 40, left: 40, right: 40 },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL L2 LOGS', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL L2 LOGS');
       },
       didParseCell: (data) => {
         if (data.column.index === 6 && data.row.section === 'body') {
@@ -944,10 +957,7 @@ export const exportL3ApprovalsPDF = (filteredLogs, filtersInfo = {}, setToastMsg
       margin: { top: 40, bottom: 40, left: 40, right: 40 },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL L3 APPROVAL MATRIX', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL L3 APPROVAL MATRIX');
       },
       didParseCell: (data) => {
         // Highlight status cells
@@ -1090,10 +1100,7 @@ export const exportApprovalsListPDF = (filteredApprovals, filtersInfo = {}, setT
       margin: { top: 40, bottom: 40, left: 40, right: 40 },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184); // Slate-400
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL APPROVAL LOGS', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL APPROVAL LOGS');
       },
       didParseCell: (data) => {
         if (data.row.section !== 'body') return;
@@ -1226,10 +1233,7 @@ export const exportUsersListPDF = (filteredUsers, filtersInfo = {}, setToastMsg)
       margin: { top: 40, bottom: 40, left: 40, right: 40 },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184); // Slate-400
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL USER DIRECTORY', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL USER DIRECTORY');
       },
       didParseCell: (data) => {
         if (data.column.index === 6 && data.row.index > 0) {
@@ -1377,10 +1381,7 @@ export const exportDashboardRequestsPDF = (filteredChanges, filtersInfo = {}, se
       margin: { top: 40, bottom: 40, left: 40, right: 40 },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184); // Slate-400
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL DASHBOARD OVERVIEW', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL DASHBOARD OVERVIEW');
       },
       didParseCell: (data) => {
         applyCellStatusColors(data, 7, 10);
@@ -1501,10 +1502,7 @@ export const exportEffectivenessLogsPDF = (filteredLogs, filtersInfo = {}, setTo
       margin: { top: 40, bottom: 40, left: 40, right: 40 },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184); // Slate-400
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QAD - CONFIDENTIAL EFFECTIVENESS OBSERVATIONS', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QAD - CONFIDENTIAL EFFECTIVENESS OBSERVATIONS');
       },
       didParseCell: (data) => {
         // Highlight Status
@@ -1717,10 +1715,7 @@ export const exportDepartmentAnalyticsPDF = (filteredChanges, filtersInfo = {}, 
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL');
       }
     });
 
@@ -1859,10 +1854,7 @@ export const exportProcessAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL');
       }
     });
 
@@ -1992,10 +1984,7 @@ export const exportCategoryAnalyticsPDF = (filteredChanges, filtersInfo = {}, se
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL');
       }
     });
 
@@ -2127,10 +2116,7 @@ export const exportMonthlyAnalyticsPDF = (filteredChanges, filtersInfo = {}, set
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL');
       }
     });
 
@@ -2281,10 +2267,7 @@ export const exportApprovalStatusAnalyticsPDF = (filteredChanges, filtersInfo = 
       },
       didDrawPage: (data) => {
         const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-        doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL', 40, doc.internal.pageSize.height - 20);
+        drawFooter(doc, `Page ${data.pageNumber} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL');
       }
     });
 
@@ -2439,10 +2422,7 @@ export const exportImprovementBenefitsPDF = (costSavingRows, productivityRows, q
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 20);
-      doc.text('NIPPON QUALITY ASSURANCE - CONFIDENTIAL', 40, doc.internal.pageSize.height - 20);
+      drawFooter(doc, `Page ${i} of ${pageCount}`, 'NIPPON QUALITY ASSURANCE - CONFIDENTIAL');
     }
 
     doc.save(`4M_Improvement_Benefits_${formatDateToDDMMYYYY(getSyncedDate()).replace(/\//g, '-')}.pdf`);

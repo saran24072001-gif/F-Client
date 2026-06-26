@@ -469,7 +469,7 @@ export const AllRequests = ({
 
   const handleExportRequestDetailsPDF = () => {
     // Mirror the exact same tab visibility conditions used in the modal tab header
-    const showL2 = selectedL1Details?.hodStatus !== 'Rejected';
+    const showL2 = selectedL1Details?.hodStatus !== 'Rejected' && selectedL2Details !== null;
     const showL3 = showL2 && selectedL2Details?.status === 'Accepted';
     const showEff = showL3 && (
       (selectedLog?.status || '').toLowerCase() === 'completed' ||
@@ -514,16 +514,25 @@ export const AllRequests = ({
     const files = filename.split(',').map(s => s.trim()).filter(Boolean);
     return (
       <div className="mt-1 flex flex-wrap gap-2">
-        {files.map((file, idx) => (
-          <span
-            key={idx}
-            className="inline-flex items-center gap-[6px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md py-1 px-2.5 text-[11px] font-medium text-[#0066cc] cursor-pointer max-w-full"
-            onClick={() => handleViewAttachment(file, changeNo)}
-          >
-            <Paperclip size={11} className="text-slate-400" />
-            <span className="underline truncate max-w-[200px]">{file}</span>
-          </span>
-        ))}
+        {files.map((file, idx) => {
+          if (file.toLowerCase() === 'n/a') {
+            return (
+              <span key={idx} className="text-[12px] font-semibold text-slate-500 mt-1">
+                {file}
+              </span>
+            );
+          }
+          return (
+            <span
+              key={idx}
+              className="inline-flex items-center gap-[6px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md py-1 px-2.5 text-[11px] font-medium text-[#0066cc] cursor-pointer max-w-full"
+              onClick={() => handleViewAttachment(file, changeNo)}
+            >
+              <Paperclip size={11} className="text-slate-400" />
+              <span className="underline truncate max-w-[200px]">{file}</span>
+            </span>
+          );
+        })}
       </div>
     );
   };
@@ -2078,19 +2087,24 @@ export const AllRequests = ({
             </tbody>
           </table>
         </div>
-        <TablePagination
-          rowsPerPageOptions={[5, 10]}
-          component="div"
-          count={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(event, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(event) => {
-            setRowsPerPage(parseInt(event.target.value, 10));
-            setPage(0);
-          }}
-          className="border-t border-slate-100"
-        />
+        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 w-full pl-[24px]">
+          <div className="text-[11px] font-bold text-black-400 sm:flex-1 text-left w-full sm:w-auto mt-2 sm:mt-0">
+            DOC NO : PRD/FR/157 R1
+          </div>
+          <TablePagination
+            rowsPerPageOptions={[5, 10]}
+            component="div"
+            count={filteredData.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={(event, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+            className="border-none !border-t-0"
+          />
+        </div>
       </div>
 
       {/* Details Modal (L1, L2, L3 Tabs) */}
@@ -2382,7 +2396,7 @@ export const AllRequests = ({
                                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Change Date Close</span>
                                   <span className="font-semibold text-slate-755 flex items-center gap-1.5 mt-0.5">
                                     <Calendar size={13} className="text-slate-400" />
-                                    {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : '-'}
+                                    {selectedL1Details.date_close ? formatDateToDDMMYYYY(selectedL1Details.date_close) : 'N/A'}
                                   </span>
                                 </div>
 
@@ -2548,6 +2562,9 @@ export const AllRequests = ({
 
                             {/* CUSTOMER APPROVAL REQUIRED */}
                             <div className="space-y-[4px]">
+                              {showCustomerApproval && (
+                                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Approval Required</span>
+                              )}
                               <span className="font-semibold text-slate-750 flex items-center gap-1.5 mt-0.5 text-[12px]">
 
                                 <span>{showCustomerApproval ? (selectedL1Details.customer_approval || '-') : '••••'}</span>
